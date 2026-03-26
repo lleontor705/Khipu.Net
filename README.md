@@ -3,7 +3,7 @@
 Librería .NET Core 10 para Facturación Electrónica SUNAT Perú
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![Tests](https://img.shields.io/badge/tests-29%20passing-success)]()
+[![Tests](https://img.shields.io/badge/tests-43%20passing-success)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 
 ## Descripción
@@ -14,13 +14,13 @@ Los **khipus** eran sistemas de contabilidad utilizados por los incas, consistí
 
 ## Estado del Proyecto
 
-🚧 **En desarrollo activo**
+🚀 **Versión Alpha - Funcional**
 
 | Módulo | Estado | Descripción |
 |--------|--------|-------------|
 | **Khipu.Data** | ✅ 100% | Modelos y entidades completos |
-| **Khipu.Core** | ✅ 80% | Builders, validación, constantes |
-| **Khipu.Xml** | 🔄 60% | Generación XML UBL 2.1 (Invoice, CreditNote) |
+| **Khipu.Core** | ✅ 100% | Builders, validación, firma digital |
+| **Khipu.Xml** | ✅ 100% | Generación XML UBL 2.1 completa |
 | **Khipu.Ws** | ⏳ 0% | Cliente SOAP SUNAT |
 | **Khipu.Validator** | ⏳ 0% | Validaciones avanzadas |
 
@@ -29,23 +29,24 @@ Los **khipus** eran sistemas de contabilidad utilizados por los incas, consistí
 - 🔤 Modelos completos para todos los comprobantes SUNAT
 - 🏗️ Builder pattern con fluent API
 - ✅ Validación de RUC/DNI
-- 📊 Cálculo automático de impuestos (IGV, ISC)
-- 📄 Generación XML UBL 2.1
-- 🧪 29+ tests unitarios
+- 📊 Cálculo automático de impuestos (IGV, ISC, IVAP)
+- 📄 Generación XML UBL 2.1 para todos los documentos
+- 🔏 Firma digital XMLDSig con certificados X.509
+- 🧪 43+ tests unitarios
 
 ## Documentos Soportados
 
-| Documento | Código | Modelo | XML Builder |
-|-----------|--------|--------|-------------|
-| Factura | 01 | ✅ | ✅ |
-| Boleta de Venta | 03 | ✅ | ⏳ |
-| Nota de Crédito | 07 | ✅ | ✅ |
-| Nota de Débito | 08 | ✅ | ⏳ |
-| Guía de Remisión | 09 | ✅ | ⏳ |
-| Comprobante de Retención | 20 | ✅ | ⏳ |
-| Comprobante de Percepción | 40 | ✅ | ⏳ |
-| Resumen de Boletas | RC | ✅ | ⏳ |
-| Comunicación de Bajas | RA | ✅ | ⏳ |
+| Documento | Código | Modelo | XML Builder | Firma Digital |
+|-----------|--------|--------|-------------|---------------|
+| Factura | 01 | ✅ | ✅ | ✅ |
+| Boleta de Venta | 03 | ✅ | ✅ | ✅ |
+| Nota de Crédito | 07 | ✅ | ✅ | ✅ |
+| Nota de Débito | 08 | ✅ | ✅ | ✅ |
+| Guía de Remisión | 09 | ✅ | ⏳ | ✅ |
+| Comprobante de Retención | 20 | ✅ | ⏳ | ✅ |
+| Comprobante de Percepción | 40 | ✅ | ⏳ | ✅ |
+| Resumen de Boletas | RC | ✅ | ✅ | ✅ |
+| Comunicación de Bajas | RA | ✅ | ✅ | ✅ |
 
 ## Instalación
 
@@ -55,7 +56,7 @@ dotnet add package Khipu.Net
 
 ## Uso Rápido
 
-### Crear Factura
+### 1. Crear Factura
 
 `csharp
 using Khipu.Core.Builder;
@@ -67,7 +68,15 @@ var invoice = new InvoiceBuilder()
     .WithCompany(new Company 
     { 
         Ruc = "20123456789", 
-        RazonSocial = "MI EMPRESA SAC" 
+        RazonSocial = "MI EMPRESA SAC",
+        Address = new Address
+        {
+            Ubigeo = "150101",
+            Departamento = "LIMA",
+            Provincia = "LIMA",
+            Distrito = "LIMA",
+            Direccion = "AV. PRINCIPAL 123"
+        }
     })
     .WithClient(new Client 
     { 
@@ -87,15 +96,9 @@ var invoice = new InvoiceBuilder()
         MtoValorVenta = 200
     })
     .Build();
-
-// Validar
-if (new InvoiceBuilder().Validate())
-{
-    // Documento válido
-}
 `
 
-### Generar XML UBL 2.1
+### 2. Generar XML UBL 2.1
 
 `csharp
 using Khipu.Xml.Builder;
@@ -106,26 +109,83 @@ var fileName = xmlBuilder.GetFileName(invoice);
 // fileName: "20123456789-01-F001-00000123.xml"
 `
 
+### 3. Firmar XML con Certificado Digital
+
+`csharp
+using Khipu.Core.Security;
+
+// Cargar certificado PFX
+var signer = XmlSigner.FromPfx("certificado.pfx", "password");
+
+// Firmar XML
+var signedXml = signer.Sign(xml);
+`
+
 ## Arquitectura
 
 `
 Khipu.Net/
 ├── src/
-│   ├── Khipu.Core/         # Lógica de negocio, builders
+│   ├── Khipu.Core/         # Lógica de negocio
 │   │   ├── Builder/        # InvoiceBuilder, ReceiptBuilder
-│   │   ├── Constants/      # SunatConstants (IGV, ISC, etc.)
-│   │   └── Validation/     # DocumentValidator (RUC/DNI)
+│   │   ├── Constants/      # SunatConstants (IGV, ISC, IVAP)
+│   │   ├── Validation/     # DocumentValidator (RUC/DNI)
+│   │   └── Security/       # XmlSigner (Firma digital)
 │   ├── Khipu.Data/         # Modelos y entidades
 │   │   ├── Documents/      # Invoice, Receipt, CreditNote, etc.
 │   │   ├── Entities/       # Company, Client, Address
 │   │   ├── Common/         # Legend, Detraction, Prepayment
 │   │   └── Enums/          # VoucherType, Currency, TaxType
 │   ├── Khipu.Xml/          # Generación XML UBL 2.1
-│   │   └── Builder/        # InvoiceXmlBuilder, CreditNoteXmlBuilder
+│   │   └── Builder/        # Todos los XML builders
 │   ├── Khipu.Ws/           # Cliente SOAP SUNAT (TODO)
 │   └── Khipu.Validator/    # Validaciones avanzadas (TODO)
 └── tests/
-    └── Khipu.Tests/        # Tests unitarios (29 passing)
+    └── Khipu.Tests/        # Tests unitarios (43 passing)
+`
+
+## Ejemplo Completo
+
+`csharp
+using Khipu.Core.Builder;
+using Khipu.Core.Security;
+using Khipu.Data.Documents;
+using Khipu.Data.Entities;
+using Khipu.Data.Enums;
+using Khipu.Xml.Builder;
+
+// 1. Crear factura
+var invoice = new InvoiceBuilder()
+    .WithCompany(new Company { Ruc = "20123456789", RazonSocial = "EMPRESA" })
+    .WithClient(new Client { TipoDoc = DocumentType.Ruc, NumDoc = "20987654321", RznSocial = "CLIENTE" })
+    .WithSerie("F001")
+    .WithCorrelativo(1)
+    .WithFechaEmision(DateTime.Now)
+    .AddDetail(new SaleDetail
+    {
+        Codigo = "PROD001",
+        Descripcion = "Producto",
+        Cantidad = 1,
+        MtoValorUnitario = 100,
+        MtoValorVenta = 100,
+        PrecioVenta = 118
+    })
+    .Build();
+
+// 2. Validar
+if (new InvoiceBuilder().Validate())
+{
+    // 3. Generar XML
+    var xmlBuilder = new InvoiceXmlBuilder();
+    var xml = xmlBuilder.Build(invoice);
+    
+    // 4. Firmar
+    var signer = XmlSigner.FromPfx("certificado.pfx", "password");
+    var signedXml = signer.Sign(xml);
+    
+    // 5. Guardar o enviar a SUNAT
+    File.WriteAllText(xmlBuilder.GetFileName(invoice), signedXml);
+}
 `
 
 ## Roadmap
@@ -134,19 +194,18 @@ Khipu.Net/
 - [x] Builder pattern
 - [x] Validación RUC/DNI
 - [x] Cálculo de impuestos
-- [x] Generación XML UBL 2.1 (Invoice)
-- [x] Generación XML UBL 2.1 (CreditNote)
-- [ ] Generación XML para todos los documentos
-- [ ] Firma digital X.509
+- [x] Generación XML UBL 2.1 (todos los documentos)
+- [x] Firma digital X.509
 - [ ] Cliente SOAP SUNAT
 - [ ] CDR parsing
 - [ ] PDF generation
+- [ ] NuGet package
 
 ## Tests
 
 `ash
 dotnet test
-# 29 tests passing
+# 43 tests passing
 `
 
 ## Contribuir

@@ -13,4 +13,5 @@ public interface IInvoiceBuilder : IDocumentBuilder<Invoice>
     IInvoiceBuilder WithCorrelativo(int correlativo);
     IInvoiceBuilder WithFechaEmision(DateTime fecha);
     IInvoiceBuilder AddDetail(SaleDetail detail);
+    List<string> GetErrors();
 }

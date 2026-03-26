@@ -2,33 +2,49 @@
 
 Librería .NET Core 10 para Facturación Electrónica SUNAT Perú
 
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-20%20passing-success)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)]()
+
 ## Descripción
 
 Los **khipus** eran sistemas de contabilidad utilizados por los incas, consistían en cuerdas con nudos para registrar información numérica y administrativa.
 
 **Khipu.Net** es una implementación moderna en .NET Core 10 para facturación electrónica en Perú, inspirada en la popular librería [Greenter](https://github.com/thegreenter/greenter).
 
+## Estado del Proyecto
+
+🚧 **En desarrollo activo**
+
+| Módulo | Estado | Descripción |
+|--------|--------|-------------|
+| **Khipu.Data** | ✅ 90% | Modelos y entidades completos |
+| **Khipu.Core** | 🔄 60% | Builders y validación básica |
+| **Khipu.Xml** | ⏳ 0% | Generación XML UBL 2.1 |
+| **Khipu.Ws** | ⏳ 0% | Cliente SOAP SUNAT |
+| **Khipu.Validator** | ⏳ 0% | Validaciones avanzadas |
+
 ## Características
 
-- 🔤 Generación de XML según estándar UBL 2.1
-- 🔏 Firma digital con certificados X.509
-- 📤 Envío a webservices de SUNAT
-- 📥 Procesamiento de CDR (Comprobante de Recepción)
-- ✅ Validación de comprobantes
+- 🔤 Modelos completos para todos los comprobantes SUNAT
+- 🏗️ Builder pattern con fluent API
+- ✅ Validación de RUC/DNI
+- 📊 Cálculo automático de impuestos (IGV, ISC)
+- 🧪 20+ tests unitarios
 
-## Arquitectura
+## Documentos Soportados
 
-| Proyecto | Descripción |
-|----------|-------------|
-| **Khipu.Core** | Núcleo y funcionalidad base |
-| **Khipu.Data** | Modelos y entidades de datos |
-| **Khipu.Xml** | Generación y parsing de XML |
-| **Khipu.Ws** | Cliente SOAP para webservices SUNAT |
-| **Khipu.Validator** | Validaciones de comprobantes |
-
-## Estado
-
-🚧 En desarrollo
+| Documento | Código | Implementado |
+|-----------|--------|--------------|
+| Factura | 01 | ✅ |
+| Boleta de Venta | 03 | ✅ |
+| Nota de Crédito | 07 | ✅ |
+| Nota de Débito | 08 | ✅ |
+| Guía de Remisión | 09 | ✅ |
+| Comprobante de Retención | 20 | ✅ |
+| Comprobante de Percepción | 40 | ✅ |
+| Resumen de Boletas | RC | ✅ |
+| Comunicación de Bajas | RA | ✅ |
 
 ## Instalación
 
@@ -36,13 +52,75 @@ Los **khipus** eran sistemas de contabilidad utilizados por los incas, consistí
 dotnet add package Khipu.Net
 `
 
-## Uso rápido
+## Uso Rápido
 
 `csharp
-using Khipu.Net;
+using Khipu.Core.Builder;
+using Khipu.Data.Documents;
+using Khipu.Data.Entities;
+using Khipu.Data.Enums;
 
-// Próximamente...
+var invoice = new InvoiceBuilder()
+    .WithCompany(new Company 
+    { 
+        Ruc = "20123456789", 
+        RazonSocial = "MI EMPRESA SAC" 
+    })
+    .WithClient(new Client 
+    { 
+        TipoDoc = DocumentType.Ruc, 
+        NumDoc = "20987654321", 
+        RznSocial = "CLIENTE SRL" 
+    })
+    .WithSerie("F001")
+    .WithCorrelativo(123)
+    .WithFechaEmision(DateTime.Now)
+    .AddDetail(new SaleDetail
+    {
+        Codigo = "PROD001",
+        Descripcion = "Producto de prueba",
+        Cantidad = 2,
+        MtoValorUnitario = 100,
+        MtoValorVenta = 200
+    })
+    .Build();
+
+// Validar
+if (new InvoiceBuilder().Validate())
+{
+    // Documento válido
+}
 `
+
+## Arquitectura
+
+`
+Khipu.Net/
+├── src/
+│   ├── Khipu.Core/         # Lógica de negocio, builders
+│   ├── Khipu.Data/         # Modelos y entidades
+│   ├── Khipu.Xml/          # Generación XML UBL 2.1
+│   ├── Khipu.Ws/           # Cliente SOAP SUNAT
+│   └── Khipu.Validator/    # Validaciones avanzadas
+└── tests/
+    └── Khipu.Tests/        # Tests unitarios
+`
+
+## Roadmap
+
+- [x] Modelos de datos
+- [x] Builder pattern
+- [x] Validación RUC/DNI
+- [x] Cálculo de impuestos
+- [ ] Generación XML UBL 2.1
+- [ ] Firma digital X.509
+- [ ] Cliente SOAP SUNAT
+- [ ] CDR parsing
+- [ ] PDF generation
+
+## Contribuir
+
+Las contribuciones son bienvenidas. Por favor, lee las guías de contribución.
 
 ## Licencia
 

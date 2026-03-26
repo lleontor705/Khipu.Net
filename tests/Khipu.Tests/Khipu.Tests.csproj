@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Khipu.Core\Khipu.Core.csproj" />
     <ProjectReference Include="..\..\src\Khipu.Data\Khipu.Data.csproj" />
+    <ProjectReference Include="..\..\src\Khipu.Xml\Khipu.Xml.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,6 @@
+            new XElement(CacNs + "Item",
+                new XElement(CacNs + "SellersItemIdentification",
+                    new XElement(CbcNs + "ID", detail.Codigo)
+                ),
+                new XElement(CbcNs + "Description", new XCData(detail.Descripcion))
+            ),

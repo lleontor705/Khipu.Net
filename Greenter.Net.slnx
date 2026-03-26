@@ -1,9 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/Greenter.Core/Greenter.Core.csproj" />
-    <Project Path="src/Greenter.Data/Greenter.Data.csproj" />
-    <Project Path="src/Greenter.Validator/Greenter.Validator.csproj" />
-    <Project Path="src/Greenter.Ws/Greenter.Ws.csproj" />
-    <Project Path="src/Greenter.Xml/Greenter.Xml.csproj" />
-  </Folder>
-</Solution>

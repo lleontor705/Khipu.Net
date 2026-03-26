@@ -6,4 +6,7 @@
     <Project Path="src/Khipu.Ws/Khipu.Ws.csproj" />
     <Project Path="src/Khipu.Xml/Khipu.Xml.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Khipu.Tests/Khipu.Tests.csproj" />
+  </Folder>
 </Solution>

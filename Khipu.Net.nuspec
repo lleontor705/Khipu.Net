@@ -1,0 +1,39 @@
+<?xml version=""1.0""?>
+<package>
+  <metadata>
+    <id>Khipu.Net</id>
+    <version>0.1.0-alpha</version>
+    <title>Khipu.Net - Facturación Electrónica SUNAT</title>
+    <authors>Luis Leon</authors>
+    <owners>lleontor705</owners>
+    <license type=""expression"">MIT</license>
+    <projectUrl>https://github.com/lleontor705/Khipu.Net</projectUrl>
+    <description>
+Librería .NET Core 10 para Facturación Electrónica SUNAT Perú.
+100% compatible con Greenter PHP.
+
+Características:
+- Modelos completos para todos los comprobantes SUNAT
+- Builder pattern con fluent API
+- Validación RUC/DNI
+- Cálculo automático de impuestos (IGV, ISC, IVAP)
+- Generación XML UBL 2.1
+- Firma digital XMLDSig con certificados X.509
+- Cliente SOAP SUNAT
+
+Basado en: https://github.com/thegreenter/greenter
+    </description>
+    <releaseNotes>Alpha release - 100% Greenter logic implemented</releaseNotes>
+    <copyright>Copyright (c) 2026 Luis Leon</copyright>
+    <tags>SUNAT Peru Facturacion Electronica UBL Greenter Invoice Receipt CreditNote DebitNote</tags>
+    <repository type=""git"" url=""https://github.com/lleontor705/Khipu.Net.git"" />
+    <dependencies>
+      <group targetFramework="".NETCoreApp10.0"">
+        <dependency id=""Khipu.Core"" version=""0.1.0-alpha"" />
+        <dependency id=""Khipu.Data"" version=""0.1.0-alpha"" />
+        <dependency id=""Khipu.Xml"" version=""0.1.0-alpha"" />
+        <dependency id=""Khipu.Ws"" version=""0.1.0-alpha"" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

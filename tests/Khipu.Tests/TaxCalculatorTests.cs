@@ -2,16 +2,34 @@ namespace Khipu.Tests;
 
 using Khipu.Core.Algorithms;
 using Khipu.Core.Constants;
+using Khipu.Data.Enums;
 using Xunit;
 
 public class TaxCalculatorTests
 {
+    [Fact]
+    public void RoundSunat_WithMidpointValue_RoundsAwayFromZero()
+    {
+        var rounded = RoundingPolicy.RoundSunat(0.045m);
+
+        Assert.Equal(0.05m, rounded);
+    }
+
     [Fact]
     public void CalculateIgv_WithValidAmount_ReturnsCorrectIgv()
     {
         var baseAmount = 100m;
         var igv = TaxCalculator.CalculateIgv(baseAmount);
         Assert.Equal(18m, igv);
+    }
+
+    [Fact]
+    public void CalculateIgv_WithMidpointResult_PreservesAwayFromZeroParity()
+    {
+        var baseAmount = 0.25m; // 0.25 * 0.18 = 0.045
+        var igv = TaxCalculator.CalculateIgv(baseAmount);
+
+        Assert.Equal(0.05m, igv);
     }
 
     [Fact]

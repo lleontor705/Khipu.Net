@@ -1,0 +1,30 @@
+{
+  "namespaces": {
+    "cbc": "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
+    "cac": "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  },
+  "requiredXpaths": [
+    "/*[local-name()='Invoice']/cbc:UBLVersionID",
+    "/*[local-name()='Invoice']/cbc:CustomizationID",
+    "/*[local-name()='Invoice']/cbc:ID",
+    "/*[local-name()='Invoice']/cbc:InvoiceTypeCode",
+    "/*[local-name()='Invoice']/cbc:Note[@languageLocaleID='1000']",
+    "/*[local-name()='Invoice']/cbc:DocumentCurrencyCode",
+    "/*[local-name()='Invoice']/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID",
+    "/*[local-name()='Invoice']/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID",
+    "/*[local-name()='Invoice']/cac:LegalMonetaryTotal/cbc:PayableAmount",
+    "/*[local-name()='Invoice']/cac:TaxTotal/cbc:TaxAmount"
+  ],
+  "assertions": [
+    { "xpath": "/*[local-name()='Invoice']/cbc:UBLVersionID", "equals": "2.1" },
+    { "xpath": "/*[local-name()='Invoice']/cbc:CustomizationID", "equals": "2.0" },
+    { "xpath": "/*[local-name()='Invoice']/cbc:ID", "equals": "F001-123" },
+    { "xpath": "/*[local-name()='Invoice']/cbc:InvoiceTypeCode", "equals": "01" },
+    { "xpath": "/*[local-name()='Invoice']/cbc:Note[@languageLocaleID='1000']", "equals": "SON DOSCIENTOS TREINTA Y SEIS CON 00/100 SOLES" },
+    { "xpath": "/*[local-name()='Invoice']/cbc:DocumentCurrencyCode", "equals": "PEN" },
+    { "xpath": "/*[local-name()='Invoice']/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID", "equals": "20123456789" },
+    { "xpath": "/*[local-name()='Invoice']/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID", "equals": "20987654321" },
+    { "xpath": "/*[local-name()='Invoice']/cac:LegalMonetaryTotal/cbc:PayableAmount", "equals": "236.00" },
+    { "xpath": "/*[local-name()='Invoice']/cac:TaxTotal/cbc:TaxAmount", "equals": "36.00" }
+  ]
+}

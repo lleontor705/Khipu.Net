@@ -1,0 +1,29 @@
+{
+  "namespaces": {
+    "cbc": "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
+    "cac": "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
+    "sac": "urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1"
+  },
+  "requiredXpaths": [
+    "/*[local-name()='VoidedDocuments']/cbc:UBLVersionID",
+    "/*[local-name()='VoidedDocuments']/cbc:CustomizationID",
+    "/*[local-name()='VoidedDocuments']/cbc:ID",
+    "/*[local-name()='VoidedDocuments']/cbc:ReferenceDate",
+    "/*[local-name()='VoidedDocuments']/cbc:IssueDate",
+    "/*[local-name()='VoidedDocuments']/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID",
+    "/*[local-name()='VoidedDocuments']/*[local-name()='VoidedDocumentsLine'][1]/cbc:DocumentTypeCode",
+    "/*[local-name()='VoidedDocuments']/*[local-name()='VoidedDocumentsLine'][1]/sac:DocumentSerialID",
+    "/*[local-name()='VoidedDocuments']/*[local-name()='VoidedDocumentsLine'][1]/sac:DocumentNumberID"
+  ],
+  "assertions": [
+    { "xpath": "/*[local-name()='VoidedDocuments']/cbc:UBLVersionID", "equals": "2.0" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/cbc:CustomizationID", "equals": "1.0" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/cbc:ID", "equals": "001" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/cbc:ReferenceDate", "equals": "2026-03-26" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/cbc:IssueDate", "equals": "2026-03-27" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID", "equals": "20123456789" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/*[local-name()='VoidedDocumentsLine'][1]/cbc:DocumentTypeCode", "equals": "01" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/*[local-name()='VoidedDocumentsLine'][1]/sac:DocumentSerialID", "equals": "F001" },
+    { "xpath": "/*[local-name()='VoidedDocuments']/*[local-name()='VoidedDocumentsLine'][1]/sac:DocumentNumberID", "equals": "001" }
+  ]
+}

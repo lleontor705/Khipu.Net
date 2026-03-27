@@ -1,34 +1,36 @@
 namespace Khipu.Tests;
 
 using Khipu.Core.Validation;
-using Xunit;
 
 public class DocumentValidatorExtendedTests
 {
     [Theory]
-    [InlineData(\"20131312977\", true)]  // RUC válido real
-    [InlineData(\"20123456789\", true)]  // RUC válido ficticio
-    [InlineData(\"12345678901\", false)] // Prefijo inválido
-    [InlineData(\"2012345678\", false)]  // Muy corto
-    [InlineData(\"201234567890\", false)] // Muy largo
-    [InlineData(\"abcdefghijk\", false)] // No numérico
-    [InlineData(\"\", false)]            // Vacío
-    [InlineData(null, false)]           // Null
-    public void ValidateRuc_Complete_Tests(string ruc, bool expected)
+    [InlineData("20100070970", true)]
+    [InlineData("20123456789", false)]
+    [InlineData("20100070971", false)]
+    [InlineData("12345678901", false)]
+    [InlineData("2012345678", false)]
+    [InlineData("201234567890", false)]
+    [InlineData("20٠00000001", false)]
+    [InlineData("abcdefghijk", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void ValidateRuc_Complete_Tests(string? ruc, bool expected)
     {
-        var result = DocumentValidator.ValidateRuc(ruc);
+        var result = DocumentValidator.ValidateRuc(ruc ?? string.Empty);
         Assert.Equal(expected, result);
     }
 
     [Theory]
-    [InlineData(\"1\", \"12345678\", true)]     // DNI válido
-    [InlineData(\"6\", \"20123456789\", true)]  // RUC válido
-    [InlineData(\"6\", \"12345678\", false)]    // RUC inválido
-    [InlineData(\"1\", \"1234567\", false)]     // DNI muy corto
-    [InlineData(\"4\", \"1234567890\", true)]   // Carnet extranjería
-    [InlineData(\"7\", \"AB123456\", true)]     // Pasaporte
-    [InlineData(\"0\", \"\", true)]             // Sin RUC
-    [InlineData(\"99\", \"123\", false)]        // Tipo inválido
+    [InlineData("1", "12345678", true)]
+    [InlineData("6", "20100070970", true)]
+    [InlineData("6", "20123456789", false)]
+    [InlineData("6", "12345678", false)]
+    [InlineData("1", "1234567", false)]
+    [InlineData("4", "1234567890", true)]
+    [InlineData("7", "AB123456", true)]
+    [InlineData("0", "", true)]
+    [InlineData("99", "123", false)]
     public void ValidateDocument_Tests(string tipoDoc, string numDoc, bool expected)
     {
         var result = DocumentValidator.ValidateDocument(tipoDoc, numDoc);
@@ -36,12 +38,12 @@ public class DocumentValidatorExtendedTests
     }
 
     [Theory]
-    [InlineData(\"F001\", \"01\", true)]   // Factura
-    [InlineData(\"B001\", \"03\", true)]   // Boleta
-    [InlineData(\"F002\", \"01\", true)]   // Factura serie 2
-    [InlineData(\"X001\", \"01\", false)]  // Prefijo inválido
-    [InlineData(\"F01\", \"01\", false)]   // Muy corto
-    [InlineData(\"\", \"01\", false)]      // Vacío
+    [InlineData("F001", "01", true)]
+    [InlineData("B001", "03", true)]
+    [InlineData("F002", "01", true)]
+    [InlineData("X001", "01", false)]
+    [InlineData("F01", "01", false)]
+    [InlineData("", "01", false)]
     public void ValidateSerie_Tests(string serie, string tipoDoc, bool expected)
     {
         var result = DocumentValidator.ValidateSerie(serie, tipoDoc);

@@ -1,0 +1,104 @@
+[
+  {
+    "id": "round-midpoint-up",
+    "operation": "roundSunat",
+    "value": 0.045,
+    "expected": 0.05,
+    "tolerance": "exact",
+    "note": "Midpoint rounds away from zero"
+  },
+  {
+    "id": "round-midpoint-negative",
+    "operation": "roundSunat",
+    "value": -0.045,
+    "expected": -0.05,
+    "tolerance": "exact",
+    "note": "Negative midpoint rounds away from zero"
+  },
+  {
+    "id": "round-boundary-below-midpoint",
+    "operation": "roundSunat",
+    "value": 0.0449,
+    "expected": 0.04,
+    "tolerance": "exact",
+    "note": "Value just below midpoint stays down"
+  },
+  {
+    "id": "round-boundary-above-midpoint",
+    "operation": "roundSunat",
+    "value": 0.0451,
+    "expected": 0.05,
+    "tolerance": "exact",
+    "note": "Value just above midpoint stays up"
+  },
+  {
+    "id": "igv-midpoint",
+    "operation": "calculateIgv",
+    "baseAmount": 0.25,
+    "expected": 0.05,
+    "tolerance": "exact",
+    "note": "0.25*0.18=0.045 midpoint"
+  },
+  {
+    "id": "igv-midpoint-boundary",
+    "operation": "calculateIgv",
+    "baseAmount": 1.25,
+    "expected": 0.23,
+    "tolerance": "exact",
+    "note": "1.25*0.18=0.225 midpoint boundary"
+  },
+  {
+    "id": "sale-gravado-midpoint",
+    "operation": "calculateSalePrice",
+    "baseAmount": 0.25,
+    "taxType": "Gravado",
+    "expected": 0.30,
+    "tolerance": "exact",
+    "note": "Sale price includes rounded IGV"
+  },
+  {
+    "id": "sale-exonerado-identity",
+    "operation": "calculateSalePrice",
+    "baseAmount": 99.99,
+    "taxType": "Exonerado",
+    "expected": 99.99,
+    "tolerance": "exact",
+    "note": "Non-gravado keeps rounded base"
+  },
+  {
+    "id": "unit-gravado-midpoint-derived",
+    "operation": "calculateUnitValue",
+    "salePrice": 0.30,
+    "taxType": "Gravado",
+    "expected": 0.25,
+    "tolerance": "exact",
+    "note": "Inverse of midpoint gravado sale"
+  },
+  {
+    "id": "unit-exonerado-identity",
+    "operation": "calculateUnitValue",
+    "salePrice": 99.99,
+    "taxType": "Exonerado",
+    "expected": 99.99,
+    "tolerance": "exact",
+    "note": "Non-gravado returns rounded sale price"
+  },
+  {
+    "id": "detraction-midpoint",
+    "operation": "calculateDetraction",
+    "baseAmount": 0.05,
+    "rate": 0.10,
+    "expected": 0.01,
+    "tolerance": "exact",
+    "note": "0.05*0.10=0.005 midpoint"
+  },
+  {
+    "id": "detraction-tolerance-annotation",
+    "operation": "calculateDetraction",
+    "baseAmount": 123.45,
+    "rate": 0.10,
+    "expected": 12.35,
+    "tolerance": "abs:0.01",
+    "note": "Tolerance annotation accepted for parity drift"
+  }
+]

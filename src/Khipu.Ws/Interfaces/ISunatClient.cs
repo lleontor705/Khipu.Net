@@ -7,8 +7,8 @@ using Khipu.Ws.Models;
 /// </summary>
 public interface ISunatClient
 {
-    Task<SunatResponse> SendBillAsync(string xmlContent, CancellationToken cancellationToken = default);
-    Task<SunatResponse> SendSummaryAsync(string xmlContent, CancellationToken cancellationToken = default);
+    Task<SunatResponse> SendBillAsync(SunatSendRequest request, CancellationToken cancellationToken = default);
+    Task<SunatResponse> SendSummaryAsync(SunatSendRequest request, CancellationToken cancellationToken = default);
     Task<TicketResponse> GetStatusAsync(string ticket, CancellationToken cancellationToken = default);
-    Task<CdrResponse> GetCdrAsync(string ruc, string tipoComprobante, string serie, int correlativo, CancellationToken cancellationToken = default);
+    Task<CdrResponse> GetCdrAsync(CdrQuery query, CancellationToken cancellationToken = default);
 }

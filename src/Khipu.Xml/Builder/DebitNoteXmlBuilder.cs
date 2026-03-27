@@ -2,10 +2,11 @@ namespace Khipu.Xml.Builder;
 
 using System.Xml.Linq;
 using Khipu.Data.Documents;
+using Khipu.Data.Enums;
 using Khipu.Xml.Interfaces;
 
 /// <summary>
-/// Generador de XML UBL 2.1 para Notas de Débito
+/// Generador de XML UBL 2.1 para Notas de Débito - Paridad 100% Greenter
 /// </summary>
 public class DebitNoteXmlBuilder : XmlBuilderBase, IXmlBuilder<DebitNote>
 {
@@ -17,7 +18,7 @@ public class DebitNoteXmlBuilder : XmlBuilderBase, IXmlBuilder<DebitNote>
             new XDeclaration("1.0", "utf-8", null),
             CreateDebitNoteElement(note)
         );
-        
+
         return doc.ToString();
     }
 
@@ -37,29 +38,28 @@ public class DebitNoteXmlBuilder : XmlBuilderBase, IXmlBuilder<DebitNote>
             new XAttribute(XNamespace.Xmlns + "cbc", CbcNs),
             new XAttribute(XNamespace.Xmlns + "ext", ExtNs),
             new XAttribute(XNamespace.Xmlns + "ds", DsNs),
-            
-            // UBL Extensions
+
             new XElement(ExtNs + "UBLExtensions",
                 new XElement(ExtNs + "UBLExtension",
                     new XElement(ExtNs + "ExtensionContent")
                 )
             ),
-            
-            // UBL Version
+
             new XElement(CbcNs + "UBLVersionID", "2.1"),
             new XElement(CbcNs + "CustomizationID", "2.0"),
             new XElement(CbcNs + "ID", $"{note.Serie}-{note.Correlativo}"),
             new XElement(CbcNs + "IssueDate", note.FechaEmision.ToString("yyyy-MM-dd")),
             new XElement(CbcNs + "IssueTime", note.FechaEmision.ToString("HH:mm:ss")),
+            note.Leyendas?.Count > 0 ? CreateNoteLegends(note) : null,
             new XElement(CbcNs + "DocumentCurrencyCode", GetCurrencyCode(note.Moneda)),
-            
-            // DiscrepancyResponse (motivo de la nota)
+
+            // DiscrepancyResponse
             new XElement(CacNs + "DiscrepancyResponse",
                 new XElement(CbcNs + "ReferenceID", note.NumDocAfectado),
                 new XElement(CbcNs + "ResponseCode", note.CodMotivo),
                 new XElement(CbcNs + "Description", new XCData(note.DesMotivo))
             ),
-            
+
             // Documento afectado
             new XElement(CacNs + "BillingReference",
                 new XElement(CacNs + "InvoiceDocumentReference",
@@ -67,19 +67,63 @@ public class DebitNoteXmlBuilder : XmlBuilderBase, IXmlBuilder<DebitNote>
                     new XElement(CbcNs + "DocumentTypeCode", note.TipDocAfectado)
                 )
             ),
-            
-            // Firma, Emisor, Receptor, Totales, Detalles
+
             CreateSignature(note.Company),
             CreateSupplierParty(note.Company),
             CreateCustomerParty(note.Client),
-            CreateLegalMonetaryTotal(note),
             CreateTaxTotal(note),
+            // Greenter: DebitNote usa RequestedMonetaryTotal en vez de LegalMonetaryTotal
+            CreateRequestedMonetaryTotal(note),
             note.Details.Select((d, i) => CreateDebitNoteLine(d, i + 1, note.Moneda))
         );
     }
 
-    private XElement CreateDebitNoteLine(SaleDetail detail, int lineNumber, Data.Enums.Currency currency)
+    private object? CreateNoteLegends(DebitNote note)
     {
+        return note.Leyendas!
+            .Where(l => !string.IsNullOrWhiteSpace(l.Code) && !string.IsNullOrWhiteSpace(l.Value))
+            .Select(l => new XElement(CbcNs + "Note",
+                new XAttribute("languageLocaleID", l.Code),
+                new XCData(l.Value)))
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Greenter: DebitNote usa RequestedMonetaryTotal
+    /// </summary>
+    private XElement CreateRequestedMonetaryTotal(DebitNote note)
+    {
+        var currency = GetCurrencyCode(note.Moneda);
+        var lineExtension = note.MtoOperGravadas + note.MtoOperExoneradas +
+                            note.MtoOperInafectas + note.MtoOperExportacion;
+
+        return new XElement(CacNs + "RequestedMonetaryTotal",
+            new XElement(CbcNs + "LineExtensionAmount",
+                new XAttribute("currencyID", currency),
+                FormatAmount(lineExtension)
+            ),
+            new XElement(CbcNs + "TaxInclusiveAmount",
+                new XAttribute("currencyID", currency),
+                FormatAmount(note.MtoImpVenta)
+            ),
+            new XElement(CbcNs + "PayableAmount",
+                new XAttribute("currencyID", currency),
+                FormatAmount(note.MtoImpVenta)
+            )
+        );
+    }
+
+    private XElement CreateDebitNoteLine(SaleDetail detail, int lineNumber, Currency currency)
+    {
+        var currencyCode = GetCurrencyCode(currency);
+        var tributo = Khipu.Data.Algorithms.TributoFunction.GetByAfectacion(detail.TipoAfectacionIgv);
+        var taxRate = detail.TasaIgv <= 0 ? 0.18m : detail.TasaIgv;
+        var igvAmount = detail.Igv ?? (detail.MtoValorVenta * taxRate);
+        var baseIgv = detail.MtoBaseIgv ?? detail.MtoValorVenta;
+        var afectCode = ((int)detail.TipoAfectacionIgv).ToString();
+
+        var totalLineTax = igvAmount + (detail.MtoIsc ?? 0m) + (detail.OtroTributo ?? 0m) + (detail.Icbper ?? 0m);
+
         return new XElement(CacNs + "DebitNoteLine",
             new XElement(CbcNs + "ID", lineNumber),
             new XElement(CbcNs + "DebitedQuantity",
@@ -87,43 +131,76 @@ public class DebitNoteXmlBuilder : XmlBuilderBase, IXmlBuilder<DebitNote>
                 detail.Cantidad.ToString("F2")
             ),
             new XElement(CbcNs + "LineExtensionAmount",
-                detail.MtoValorVenta.ToString("F2")
+                new XAttribute("currencyID", currencyCode),
+                FormatAmount(detail.MtoValorVenta)
             ),
             new XElement(CacNs + "PricingReference",
                 new XElement(CacNs + "AlternativeConditionPrice",
                     new XElement(CbcNs + "PriceAmount",
-                        new XAttribute("currencyID", GetCurrencyCode(currency)),
-                        detail.PrecioVenta.ToString("F2")
+                        new XAttribute("currencyID", currencyCode),
+                        FormatAmount(detail.PrecioVenta)
                     ),
                     new XElement(CbcNs + "PriceTypeCode", "01")
                 )
             ),
+            CreateLineCharges(detail.Descuentos, false, currencyCode),
+            CreateLineCharges(detail.Cargos, true, currencyCode),
             new XElement(CacNs + "TaxTotal",
                 new XElement(CbcNs + "TaxAmount",
-                    (detail.MtoValorVenta * 0.18m).ToString("F2")
+                    new XAttribute("currencyID", currencyCode),
+                    FormatAmount(totalLineTax)
                 ),
+                detail.MtoIsc.HasValue && detail.MtoIsc > 0 ?
+                    new XElement(CacNs + "TaxSubtotal",
+                        new XElement(CbcNs + "TaxableAmount", new XAttribute("currencyID", currencyCode), FormatAmount(detail.MtoBaseIsc ?? detail.MtoValorVenta)),
+                        new XElement(CbcNs + "TaxAmount", new XAttribute("currencyID", currencyCode), FormatAmount(detail.MtoIsc!.Value)),
+                        new XElement(CacNs + "TaxCategory",
+                            new XElement(CbcNs + "TaxScheme",
+                                new XElement(CbcNs + "ID", "2000"),
+                                new XElement(CbcNs + "Name", "ISC"),
+                                new XElement(CbcNs + "TaxTypeCode", "EXC")))) : null,
                 new XElement(CacNs + "TaxSubtotal",
+                    new XElement(CbcNs + "TaxableAmount",
+                        new XAttribute("currencyID", currencyCode),
+                        FormatAmount(baseIgv)),
                     new XElement(CbcNs + "TaxAmount",
-                        (detail.MtoValorVenta * 0.18m).ToString("F2")
+                        new XAttribute("currencyID", currencyCode),
+                        FormatAmount(igvAmount)
                     ),
                     new XElement(CacNs + "TaxCategory",
+                        new XElement(CbcNs + "Percent", FormatAmount(detail.PorcentajeIgv ?? (taxRate * 100m))),
+                        new XElement(CbcNs + "TaxExemptionReasonCode", afectCode),
                         new XElement(CbcNs + "TaxScheme",
-                            new XElement(CbcNs + "ID", "1000"),
-                            new XElement(CbcNs + "Name", "IGV"),
-                            new XElement(CbcNs + "TaxTypeCode", "VAT")
+                            new XElement(CbcNs + "ID", tributo?.Id ?? "1000"),
+                            new XElement(CbcNs + "Name", tributo?.Name ?? "IGV"),
+                            new XElement(CbcNs + "TaxTypeCode", tributo?.Code ?? "VAT")
                         )
                     )
-                )
+                ),
+                detail.Icbper.HasValue && detail.Icbper > 0 ?
+                    new XElement(CacNs + "TaxSubtotal",
+                        new XElement(CbcNs + "TaxableAmount", new XAttribute("currencyID", currencyCode), FormatAmount(0m)),
+                        new XElement(CbcNs + "TaxAmount", new XAttribute("currencyID", currencyCode), FormatAmount(detail.Icbper!.Value)),
+                        new XElement(CacNs + "TaxCategory",
+                            new XElement(CbcNs + "TaxScheme",
+                                new XElement(CbcNs + "ID", "7152"),
+                                new XElement(CbcNs + "Name", "ICBPER"),
+                                new XElement(CbcNs + "TaxTypeCode", "OTH")))) : null
             ),
             new XElement(CacNs + "Item",
+                new XElement(CbcNs + "Description", new XCData(detail.Descripcion)),
                 new XElement(CacNs + "SellersItemIdentification",
                     new XElement(CbcNs + "ID", detail.Codigo)
                 ),
-                new XElement(CbcNs + "Description", new XCData(detail.Descripcion))
+                !string.IsNullOrEmpty(detail.CodProdSunat) ?
+                    new XElement(CacNs + "CommodityClassification",
+                        new XElement(CbcNs + "ItemClassificationCode",
+                            new XAttribute("listID", "UNSPSC"), detail.CodProdSunat)) : null
             ),
             new XElement(CacNs + "Price",
                 new XElement(CbcNs + "PriceAmount",
-                    detail.MtoValorUnitario.ToString("F2")
+                    new XAttribute("currencyID", currencyCode),
+                    FormatAmount(detail.MtoValorUnitario)
                 )
             )
         );

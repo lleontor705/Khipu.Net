@@ -1,0 +1,78 @@
+[
+  {
+    "id": "invoice-valid",
+    "document": "invoice",
+    "expectValid": true,
+    "expectCodes": []
+  },
+  {
+    "id": "invoice-missing-ruc",
+    "document": "invoice",
+    "mutations": ["company-ruc-empty"],
+    "expectValid": false,
+    "expectCodes": ["VAL-RUC-REQUIRED"]
+  },
+  {
+    "id": "invoice-checksum-invalid-ruc",
+    "document": "invoice",
+    "mutations": ["company-ruc-checksum-invalid"],
+    "expectValid": false,
+    "expectCodes": ["VAL-RUC-INVALID"]
+  },
+  {
+    "id": "invoice-empty-details",
+    "document": "invoice",
+    "mutations": ["details-empty"],
+    "expectValid": false,
+    "expectCodes": ["VAL-DETAILS-EMPTY"]
+  },
+  {
+    "id": "invoice-multi-error-ordered",
+    "document": "invoice",
+    "mutations": ["company-ruc-empty", "serie-empty", "correlativo-zero", "details-empty", "total-negative"],
+    "expectValid": false,
+    "expectCodes": ["VAL-RUC-REQUIRED", "VAL-SERIE-REQUIRED", "VAL-CORR-INVALID", "VAL-DETAILS-EMPTY", "VAL-TOTAL-NEGATIVE"]
+  },
+  {
+    "id": "summary-checksum-invalid-ruc",
+    "document": "summary",
+    "mutations": ["company-ruc-checksum-invalid"],
+    "expectValid": false,
+    "expectCodes": ["VAL-RUC-INVALID"]
+  },
+  {
+    "id": "summary-duplicate-reference",
+    "document": "summary",
+    "mutations": ["duplicate-reference"],
+    "expectValid": false,
+    "expectCodes": ["VAL-DUPLICATE-REFERENCE"]
+  },
+  {
+    "id": "summary-multi-error-ordered",
+    "document": "summary",
+    "mutations": ["company-ruc-checksum-invalid", "duplicate-reference"],
+    "expectValid": false,
+    "expectCodes": ["VAL-RUC-INVALID", "VAL-DUPLICATE-REFERENCE"]
+  },
+  {
+    "id": "voided-checksum-invalid-ruc",
+    "document": "voided",
+    "mutations": ["company-ruc-checksum-invalid"],
+    "expectValid": false,
+    "expectCodes": ["VAL-RUC-INVALID"]
+  },
+  {
+    "id": "voided-duplicate-reference",
+    "document": "voided",
+    "mutations": ["duplicate-reference"],
+    "expectValid": false,
+    "expectCodes": ["VAL-DUPLICATE-REFERENCE"]
+  },
+  {
+    "id": "voided-multi-error-ordered",
+    "document": "voided",
+    "mutations": ["company-ruc-checksum-invalid", "duplicate-reference"],
+    "expectValid": false,
+    "expectCodes": ["VAL-RUC-INVALID", "VAL-DUPLICATE-REFERENCE"]
+  }
+]

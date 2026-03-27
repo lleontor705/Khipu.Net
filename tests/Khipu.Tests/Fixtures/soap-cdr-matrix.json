@@ -1,0 +1,92 @@
+[
+  {
+    "id": "sendbill-success-cdr",
+    "api": "SendBill",
+    "mode": "success-cdr",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedStatusCode": "0",
+    "expectedClassification": "SuccessCdr"
+  },
+  {
+    "id": "sendsummary-pending-ticket",
+    "api": "SendSummary",
+    "mode": "pending-ticket",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedStatusCode": "98",
+    "expectedClassification": "PendingTicket"
+  },
+  {
+    "id": "sendbill-fault",
+    "api": "SendBill",
+    "mode": "fault",
+    "expectedSuccess": false,
+    "expectedErrorCode": "SOAP_FAULT",
+    "expectedStatusCode": null,
+    "expectedClassification": "Fault"
+  },
+  {
+    "id": "getstatus-pending",
+    "api": "GetStatus",
+    "mode": "pending",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedStatusCode": "98",
+    "expectedClassification": "Pending"
+  },
+  {
+    "id": "getcdr-accepted",
+    "api": "GetCdr",
+    "mode": "accepted",
+    "expectedSuccess": true,
+    "expectedErrorCode": "0",
+    "expectedStatusCode": null,
+    "expectedClassification": "Accepted"
+  },
+  {
+    "id": "getcdr-warning",
+    "api": "GetCdr",
+    "mode": "warning",
+    "expectedSuccess": true,
+    "expectedErrorCode": "99",
+    "expectedStatusCode": null,
+    "expectedClassification": "Warning"
+  },
+  {
+    "id": "getcdr-fault",
+    "api": "GetCdr",
+    "mode": "fault",
+    "expectedSuccess": false,
+    "expectedErrorCode": "SOAP_FAULT",
+    "expectedStatusCode": null,
+    "expectedClassification": "Fault"
+  },
+  {
+    "id": "getcdr-corrupt-cdr",
+    "api": "GetCdr",
+    "mode": "corrupt-cdr",
+    "expectedSuccess": false,
+    "expectedErrorCode": "CDR_PARSE_ERROR",
+    "expectedStatusCode": null,
+    "expectedClassification": "CorruptCdr"
+  },
+  {
+    "id": "sendbill-http-error",
+    "api": "SendBill",
+    "mode": "http-error",
+    "expectedSuccess": false,
+    "expectedErrorCode": "HTTP_ERROR",
+    "expectedStatusCode": null,
+    "expectedClassification": "Unknown"
+  },
+  {
+    "id": "sendbill-timeout",
+    "api": "SendBill",
+    "mode": "timeout",
+    "expectedSuccess": false,
+    "expectedErrorCode": "TIMEOUT",
+    "expectedStatusCode": null,
+    "expectedClassification": "Unknown"
+  }
+]

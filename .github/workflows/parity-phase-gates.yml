@@ -1,0 +1,291 @@
+name: parity-phase-gates
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  p0-baseline-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore Khipu.Net.slnx
+      - name: Build
+        run: dotnet build Khipu.Net.slnx --no-restore -warnaserror
+      - name: Test
+        run: dotnet test Khipu.Net.slnx --no-restore --no-build -warnaserror
+
+  p1-tax-rounding-parity:
+    runs-on: ubuntu-latest
+    needs: p0-baseline-health
+    if: ${{ needs.p0-baseline-health.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore Khipu.Net.slnx
+      - name: Run tax/rounding parity gate (P1)
+        run: bash scripts/parity/run-filtered-gate.sh P1
+
+  p2-xml-golden-fixtures:
+    runs-on: ubuntu-latest
+    needs: p1-tax-rounding-parity
+    if: ${{ needs.p1-tax-rounding-parity.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore Khipu.Net.slnx
+      - name: Run XML golden fixtures gate (P2)
+        run: bash scripts/parity/run-filtered-gate.sh P2
+
+  p3-validator-fixtures:
+    runs-on: ubuntu-latest
+    needs: p2-xml-golden-fixtures
+    if: ${{ needs.p2-xml-golden-fixtures.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore Khipu.Net.slnx
+      - name: Run validator fixtures gate (P3)
+        run: bash scripts/parity/run-filtered-gate.sh P3
+
+  p4-soap-cdr-fixtures:
+    runs-on: ubuntu-latest
+    needs: p3-validator-fixtures
+    if: ${{ needs.p3-validator-fixtures.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore Khipu.Net.slnx
+      - name: Run SOAP/CDR fixtures gate (P4)
+        run: bash scripts/parity/run-filtered-gate.sh P4
+
+  p5-e2e-parity:
+    runs-on: ubuntu-latest
+    needs: p4-soap-cdr-fixtures
+    if: ${{ needs.p4-soap-cdr-fixtures.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore Khipu.Net.slnx
+      - name: Run E2E parity gate (P5)
+        run: bash scripts/parity/run-filtered-gate.sh P5
+
+  p6-full-regression:
+    runs-on: ubuntu-latest
+    needs: p5-e2e-parity
+    if: ${{ needs.p5-e2e-parity.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore Khipu.Net.slnx
+      - name: Full tests (P6)
+        id: p6_tests
+        run: |
+          mkdir -p artifacts/parity
+          set +e
+          dotnet test Khipu.Net.slnx --no-restore \
+            -warnaserror \
+            --results-directory artifacts/parity \
+            --logger "trx;LogFileName=p6-full-regression.trx"
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Compare P6 pass-set against baseline
+        id: p6_compare
+        run: |
+          set +e
+          python3 scripts/parity/compare-p6-pass-set.py \
+            --trx artifacts/parity/p6-full-regression.trx \
+            --baseline tools/parity/baselines/p6-pass-set.v1.json \
+            --output artifacts/parity/p6-regression-comparison.json
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload P6 evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-p6-evidence
+          path: |
+            artifacts/parity/*.trx
+            artifacts/parity/p6-regression-comparison.json
+      - name: Enforce P6 regression gate outcome
+        if: ${{ steps.p6_tests.outputs.exit_code != '0' || steps.p6_compare.outputs.exit_code != '0' }}
+        run: |
+          echo "P6 regression gate failed (tests=${{ steps.p6_tests.outputs.exit_code }}, comparator=${{ steps.p6_compare.outputs.exit_code }})" >&2
+          exit 1
+
+  publish-gate-summary:
+    runs-on: ubuntu-latest
+    needs:
+      - p0-baseline-health
+      - p1-tax-rounding-parity
+      - p2-xml-golden-fixtures
+      - p3-validator-fixtures
+      - p4-soap-cdr-fixtures
+      - p5-e2e-parity
+      - p6-full-regression
+    if: ${{ always() }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download P6 evidence artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: parity-p6-evidence
+          path: artifacts/parity
+        continue-on-error: true
+      - name: Build machine-readable gate summary
+        env:
+          P0_RESULT: ${{ needs.p0-baseline-health.result }}
+          P1_RESULT: ${{ needs.p1-tax-rounding-parity.result }}
+          P2_RESULT: ${{ needs.p2-xml-golden-fixtures.result }}
+          P3_RESULT: ${{ needs.p3-validator-fixtures.result }}
+          P4_RESULT: ${{ needs.p4-soap-cdr-fixtures.result }}
+          P5_RESULT: ${{ needs.p5-e2e-parity.result }}
+          P6_RESULT: ${{ needs.p6-full-regression.result }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          phase_meta = [
+              ("P0", "p0-baseline-health", "Restore + build + test baseline gate"),
+              ("P1", "p1-tax-rounding-parity", "Tax/rounding parity gate"),
+              ("P2", "p2-xml-golden-fixtures", "XML golden fixtures gate"),
+              ("P3", "p3-validator-fixtures", "Validator fixtures gate"),
+              ("P4", "p4-soap-cdr-fixtures", "SOAP/CDR fixtures gate"),
+              ("P5", "p5-e2e-parity", "E2E parity gate"),
+              ("P6", "p6-full-regression", "Full regression + baseline comparator"),
+          ]
+
+          results = {
+              "P0": os.getenv("P0_RESULT", "skipped"),
+              "P1": os.getenv("P1_RESULT", "skipped"),
+              "P2": os.getenv("P2_RESULT", "skipped"),
+              "P3": os.getenv("P3_RESULT", "skipped"),
+              "P4": os.getenv("P4_RESULT", "skipped"),
+              "P5": os.getenv("P5_RESULT", "skipped"),
+              "P6": os.getenv("P6_RESULT", "skipped"),
+          }
+
+          regression_path = Path("artifacts/parity/p6-regression-comparison.json")
+          regression = None
+          if regression_path.exists():
+              regression = json.loads(regression_path.read_text(encoding="utf-8"))
+
+          gates = []
+          previous_nonpass = None
+          for phase, gate_id, description in phase_meta:
+              result = results[phase]
+              blocked_by = None
+              if result == "success":
+                  status = "passed"
+                  evidence = [f"[PASS] {gate_id} completed successfully"]
+              elif result in ("failure", "cancelled", "timed_out"):
+                  status = "failed"
+                  evidence = [f"[FAIL] {gate_id} finished with result={result}"]
+              else:
+                  status = "blocked"
+                  blocker = previous_nonpass or "upstream phase gate"
+                  blocked_by = blocker
+                  evidence = [f"[SKIP] {gate_id} skipped because {blocker} was not passed"]
+
+              if phase == "P6" and regression is not None:
+                  comp_status = regression.get("status", "failed")
+                  if comp_status == "passed" and status == "passed":
+                      evidence.append(
+                          f"[PASS] baseline comparator matched {regression.get('matched_count', 0)}/{regression.get('baseline_count', 0)} tests"
+                      )
+                  else:
+                      status = "failed"
+                      blocked_by = None
+                      missing = regression.get("missing_from_current", [])
+                      if missing:
+                          evidence.append(
+                              f"[FAIL] baseline comparator missing {len(missing)} tests: {', '.join(missing)}"
+                          )
+                      else:
+                          evidence.append("[FAIL] baseline comparator did not pass")
+
+              if status != "passed" and previous_nonpass is None:
+                  previous_nonpass = gate_id
+
+              gates.append(
+                  {
+                      "phase": phase,
+                      "gate_id": gate_id,
+                      "status": status,
+                      "blocked_by": blocked_by,
+                      "description": description,
+                      "evidence": evidence,
+                      "duration_ms": 0,
+                      "evidence_collected_at_utc": datetime.now(timezone.utc)
+                      .replace(microsecond=0)
+                      .isoformat()
+                      .replace("+00:00", "Z"),
+                  }
+              )
+
+          overall_status = "passed" if all(g["status"] == "passed" for g in gates) else "failed"
+          summary = {
+              "schema_version": "1.0.0",
+              "workflow": "parity-phase-gates",
+              "repository": os.getenv("GITHUB_REPOSITORY", ""),
+              "ref": os.getenv("GITHUB_REF", ""),
+              "sha": os.getenv("GITHUB_SHA", ""),
+              "run_id": int(os.getenv("GITHUB_RUN_ID", "0") or "0"),
+              "run_attempt": int(os.getenv("GITHUB_RUN_ATTEMPT", "0") or "0"),
+              "generated_at_utc": datetime.now(timezone.utc)
+              .replace(microsecond=0)
+              .isoformat()
+              .replace("+00:00", "Z"),
+              "gates": gates,
+              "overall_status": overall_status,
+          }
+
+          out_path = Path("artifacts/parity/gate-summary.json")
+          out_path.parent.mkdir(parents=True, exist_ok=True)
+          out_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+          print(f"Wrote {out_path}")
+          print(f"overall_status={overall_status}")
+          PY
+      - name: Upload gate summary artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-gate-summary
+          path: |
+            tools/parity/gate-summary.schema.json
+            tools/parity/baselines/p6-pass-set.v1.json
+            artifacts/parity/gate-summary.json
+            artifacts/parity/p6-regression-comparison.json
+            artifacts/parity/*.trx

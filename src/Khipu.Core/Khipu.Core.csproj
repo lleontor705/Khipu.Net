@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Khipu.Data\Khipu.Data.csproj" />
+    <ProjectReference Include="..\Khipu.Ws\Khipu.Ws.csproj" />
+    <ProjectReference Include="..\Khipu.Xml\Khipu.Xml.csproj" />
   </ItemGroup>
 
   <ItemGroup>

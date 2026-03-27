@@ -1,0 +1,29 @@
+{
+  "namespaces": {
+    "cbc": "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
+    "sac": "urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1",
+    "cac": "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  },
+  "requiredXpaths": [
+    "/*[local-name()='SummaryDocuments']/cbc:UBLVersionID",
+    "/*[local-name()='SummaryDocuments']/cbc:CustomizationID",
+    "/*[local-name()='SummaryDocuments']/cbc:ID",
+    "/*[local-name()='SummaryDocuments']/cbc:ReferenceDate",
+    "/*[local-name()='SummaryDocuments']/cbc:IssueDate",
+    "/*[local-name()='SummaryDocuments']/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID",
+    "/*[local-name()='SummaryDocuments']/*[local-name()='SummaryDocumentsLine'][1]/cbc:DocumentTypeCode",
+    "/*[local-name()='SummaryDocuments']/*[local-name()='SummaryDocumentsLine'][1]/cbc:ID",
+    "/*[local-name()='SummaryDocuments']/*[local-name()='SummaryDocumentsLine'][1]/sac:TotalAmount"
+  ],
+  "assertions": [
+    { "xpath": "/*[local-name()='SummaryDocuments']/cbc:UBLVersionID", "equals": "2.0" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/cbc:CustomizationID", "equals": "1.1" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/cbc:ID", "equals": "001" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/cbc:ReferenceDate", "equals": "2026-03-26" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/cbc:IssueDate", "equals": "2026-03-27" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/cac:AccountingSupplierParty/cbc:CustomerAssignedAccountID", "equals": "20123456789" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/*[local-name()='SummaryDocumentsLine'][1]/cbc:DocumentTypeCode", "equals": "03" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/*[local-name()='SummaryDocumentsLine'][1]/cbc:ID", "equals": "B001-001" },
+    { "xpath": "/*[local-name()='SummaryDocuments']/*[local-name()='SummaryDocumentsLine'][1]/sac:TotalAmount", "equals": "118.00" }
+  ]
+}

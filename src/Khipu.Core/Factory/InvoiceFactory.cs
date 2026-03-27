@@ -1,13 +1,10 @@
 namespace Khipu.Core.Factory;
 
-using Khipu.Core.Builder;
+using Khipu.Core.Algorithms;
 using Khipu.Data.Documents;
 using Khipu.Data.Entities;
 using Khipu.Data.Enums;
 
-/// <summary>
-/// Factory para crear documentos SUNAT (basado en Greenter InvoiceFactory)
-/// </summary>
 public class InvoiceFactory
 {
     private readonly Company _company;
@@ -17,48 +14,38 @@ public class InvoiceFactory
         _company = company ?? throw new ArgumentNullException(nameof(company));
     }
 
-    /// <summary>
-    /// Crea una factura
-    /// </summary>
     public Invoice CreateInvoice(Client client, string serie, int correlativo, DateTime fechaEmision)
     {
         return new Invoice
         {
             Company = _company,
             Client = client ?? throw new ArgumentNullException(nameof(client)),
-            Serie = ValidateSerie(serie, \"01\"),
+            Serie = ValidateSerie(serie),
             Correlativo = correlativo,
             FechaEmision = fechaEmision,
-            TipoOperacion = \"0101\" // Venta interna
+            TipoOperacion = "0101"
         };
     }
 
-    /// <summary>
-    /// Crea una boleta
-    /// </summary>
     public Receipt CreateReceipt(Client client, string serie, int correlativo, DateTime fechaEmision)
     {
         return new Receipt
         {
             Company = _company,
             Client = client ?? throw new ArgumentNullException(nameof(client)),
-            Serie = ValidateSerie(serie, \"03\"),
+            Serie = ValidateSerie(serie),
             Correlativo = correlativo,
             FechaEmision = fechaEmision
         };
     }
 
-    /// <summary>
-    /// Crea una nota de crédito
-    /// </summary>
-    public CreditNote CreateCreditNote(Client client, string serie, int correlativo, 
-        DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
+    public CreditNote CreateCreditNote(Client client, string serie, int correlativo, DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
     {
         return new CreditNote
         {
             Company = _company,
             Client = client ?? throw new ArgumentNullException(nameof(client)),
-            Serie = ValidateSerie(serie, \"07\"),
+            Serie = ValidateSerie(serie),
             Correlativo = correlativo,
             FechaEmision = fechaEmision,
             NumDocAfectado = docAfectado,
@@ -67,17 +54,13 @@ public class InvoiceFactory
         };
     }
 
-    /// <summary>
-    /// Crea una nota de débito
-    /// </summary>
-    public DebitNote CreateDebitNote(Client client, string serie, int correlativo,
-        DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
+    public DebitNote CreateDebitNote(Client client, string serie, int correlativo, DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
     {
         return new DebitNote
         {
             Company = _company,
             Client = client ?? throw new ArgumentNullException(nameof(client)),
-            Serie = ValidateSerie(serie, \"08\"),
+            Serie = ValidateSerie(serie),
             Correlativo = correlativo,
             FechaEmision = fechaEmision,
             NumDocAfectado = docAfectado,
@@ -86,15 +69,10 @@ public class InvoiceFactory
         };
     }
 
-    /// <summary>
-    /// Crea un detalle de venta
-    /// </summary>
-    public SaleDetail CreateDetail(string codigo, string descripcion, string unidad, 
-        decimal cantidad, decimal valorUnitario, TaxType tipoAfectacion = TaxType.Gravado)
+    public SaleDetail CreateDetail(string codigo, string descripcion, string unidad, decimal cantidad, decimal valorUnitario, TaxType tipoAfectacion = TaxType.Gravado)
     {
-        var valorVenta = Math.Round(cantidad * valorUnitario, 2);
-        var igv = tipoAfectacion == TaxType.Gravado ? valorVenta * 0.18m : 0;
-        var precioVenta = valorVenta + igv;
+        var valorVenta = RoundingPolicy.RoundSunat(cantidad * valorUnitario);
+        var precioVenta = TaxCalculator.CalculateSalePrice(valorVenta, tipoAfectacion);
 
         return new SaleDetail
         {
@@ -110,13 +88,17 @@ public class InvoiceFactory
         };
     }
 
-    private string ValidateSerie(string serie, string tipoDoc)
+    private static string ValidateSerie(string serie)
     {
         if (string.IsNullOrWhiteSpace(serie))
-            throw new ArgumentException(\"Serie es requerida\");
+        {
+            throw new ArgumentException("Serie es requerida", nameof(serie));
+        }
 
         if (serie.Length != 4)
-            throw new ArgumentException(\$\"Serie debe tener 4 caracteres: {serie}\");
+        {
+            throw new ArgumentException($"Serie debe tener 4 caracteres: {serie}", nameof(serie));
+        }
 
         return serie;
     }

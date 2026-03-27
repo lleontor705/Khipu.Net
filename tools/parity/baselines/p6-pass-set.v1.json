@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "artifact": "p6-pass-set-baseline",
+  "description": "Baseline pass-set for explicit P2-P5 parity gates, used by P6 regression budget comparisons.",
+  "source": {
+    "workflow": ".github/workflows/parity-phase-gates.yml",
+    "rollbackEvidence": ".ci/rollback-evidence.md",
+    "testsProject": "tests/Khipu.Tests/Khipu.Tests.csproj"
+  },
+  "gateFilter": {
+    "P1": "TaxRoundingFixtureMatrixTests|TaxCalculatorTests|InvoiceBuilderTaxTests",
+    "P2": "XmlGoldenFixtureTests",
+    "P3": "ValidatorFixtureMatrixTests",
+    "P4": "SunatSoapClientFixtureMatrixTests",
+    "P5": "SunatServiceE2EParityTests",
+    "combined": "TaxRoundingFixtureMatrixTests|TaxCalculatorTests|InvoiceBuilderTaxTests|XmlGoldenFixtureTests|ValidatorFixtureMatrixTests|SunatSoapClientFixtureMatrixTests|SunatServiceE2EParityTests"
+  },
+  "passSet": {
+    "xunitFacts": [
+      "XmlGoldenFixtureTests.InvoiceXml_MatchesGoldenFixtureWithXPathDiagnostics",
+      "XmlGoldenFixtureTests.SummaryXml_MatchesGoldenFixtureWithXPathDiagnostics",
+      "XmlGoldenFixtureTests.VoidedXml_MatchesGoldenFixtureWithXPathDiagnostics",
+      "ValidatorFixtureMatrixTests.ValidatorMatrix_FixturesMatchExpectedCodes",
+      "SunatSoapClientFixtureMatrixTests.SoapCdrMatrix_CoversSuccessWarningFaultPendingAndCorruptCdr",
+      "SunatServiceE2EParityTests.SendInvoice_BuildSignZipDispatch_ProducesSunatContractPayload",
+      "SunatServiceE2EParityTests.SendSummary_AndQueryCdr_FollowsExpectedParityFlow"
+    ],
+    "fixtureCaseIds": {
+      "validatorMatrix": [
+        "invoice-valid",
+        "invoice-missing-ruc",
+        "invoice-checksum-invalid-ruc",
+        "invoice-empty-details",
+        "summary-checksum-invalid-ruc",
+        "summary-duplicate-reference",
+        "voided-checksum-invalid-ruc",
+        "voided-duplicate-reference"
+      ],
+      "soapCdrMatrix": [
+        "sendbill-success-cdr",
+        "sendsummary-pending-ticket",
+        "sendbill-fault",
+        "getstatus-pending",
+        "getcdr-accepted",
+        "getcdr-warning",
+        "getcdr-fault",
+        "getcdr-corrupt-cdr"
+      ],
+      "xmlGoldenDocuments": [
+        "invoice",
+        "summary",
+        "voided"
+      ]
+    }
+  },
+  "baselineCounts": {
+    "xunitFacts": 7,
+    "validatorMatrixCases": 8,
+    "soapCdrMatrixCases": 8,
+    "xmlGoldenDocuments": 3,
+    "compositeTotal": 26
+  },
+  "notes": [
+    "P6 comparisons should fail budget checks when any baseline pass-set item is removed or renamed without explicit baseline refresh.",
+    "This artifact is intentionally deterministic and source-controlled to support reproducible regression accounting."
+  ]
+}

@@ -7,10 +7,11 @@ public class SunatResponse
 {
     public bool Success { get; set; }
     public string? Ticket { get; set; }
-    public string? CdrZip { get; set; }
+    public byte[]? CdrZip { get; set; }
     public string? ErrorCode { get; set; }
     public string? ErrorMessage { get; set; }
     public DateTime? ResponseDate { get; set; }
+    public string? StatusCode { get; set; }
 }
 
 /// <summary>
@@ -19,7 +20,7 @@ public class SunatResponse
 public class CdrResponse
 {
     public bool Success { get; set; }
-    public string? CdrZip { get; set; }
+    public byte[]? CdrZip { get; set; }
     public string? CdrXml { get; set; }
     public string? ErrorCode { get; set; }
     public string? ErrorMessage { get; set; }
@@ -34,7 +35,7 @@ public class TicketResponse
 {
     public bool Success { get; set; }
     public string? Ticket { get; set; }
-    public string? CdrZip { get; set; }
+    public byte[]? CdrZip { get; set; }
     public string? StatusCode { get; set; }
     public string? ErrorMessage { get; set; }
 }

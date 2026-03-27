@@ -19,10 +19,26 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Fixtures/**/*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\tools\parity\gate-summary.schema.json" Link="Fixtures/parity/gate-summary.schema.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\tools\parity\baselines\p6-pass-set.v1.json" Link="Fixtures/parity/p6-pass-set.v1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\.github\workflows\parity-phase-gates.yml" Link="Fixtures/parity/parity-phase-gates.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Khipu.Core\Khipu.Core.csproj" />
     <ProjectReference Include="..\..\src\Khipu.Data\Khipu.Data.csproj" />
     <ProjectReference Include="..\..\src\Khipu.Xml\Khipu.Xml.csproj" />
     <ProjectReference Include="..\..\src\Khipu.Ws\Khipu.Ws.csproj" />
+    <ProjectReference Include="..\..\src\Khipu.Validator\Khipu.Validator.csproj" />
   </ItemGroup>
 
 </Project>

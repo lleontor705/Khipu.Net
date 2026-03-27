@@ -250,6 +250,7 @@ dotnet add package Khipu.Net
 ## 📚 **Documentación**
 
 - [README.md](README.md) - Guía completa
+- [docs/parity-baseline-governance.md](docs/parity-baseline-governance.md) - Gobierno de baseline parity y checkpoints de rollback
 - [Ejemplos](examples/) - Código de ejemplo
 - [Wiki](https://github.com/lleontor705/Khipu.Net/wiki) - Documentación detallada
 

@@ -1,18 +1,5 @@
 <Project>
   <PropertyGroup>
-    <IsPackable>true</IsPackable>
-    <Version>0.1.0-alpha</Version>
-    <Authors>Luis Leon</Authors>
-    <Company>Khipu.Net</Company>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/lleontor705/Khipu.Net</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/lleontor705/Khipu.Net.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>SUNAT Peru Facturacion Electronica UBL Greenter Invoice</PackageTags>
-    <Copyright>Copyright (c) 2026 Luis Leon</Copyright>
-    <PackageReadmeFile>nuget-readme.md</PackageReadmeFile>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\docs\nuget-readme.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
 </Project>

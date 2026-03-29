@@ -1,0 +1,44 @@
+# Khipu.Net
+
+> Khipu.Net is a .NET 10 library for SUNAT Peru Electronic Invoicing (Facturacion Electronica). It is a 100% compatible reimplementation of the Greenter PHP library. It provides document models, tax calculation, XML UBL 2.1 generation, XMLDSig signing, SOAP client for SUNAT, and document validation.
+
+Install: `dotnet add package Khipu.Net`
+
+Target framework: net10.0
+
+## Getting Started
+
+- [Getting Started](https://github.com/lleontor705/Khipu.Net/blob/master/docs/getting-started.md): Installation, prerequisites, company configuration, SUNAT environments
+
+## Invoices and Receipts
+
+- [Invoices and Receipts](https://github.com/lleontor705/Khipu.Net/blob/master/docs/invoices.md): Creating invoices and receipts using Factory and Builder patterns, tax types, series format, payment terms, detractions, perceptions
+
+## Credit and Debit Notes
+
+- [Credit and Debit Notes](https://github.com/lleontor705/Khipu.Net/blob/master/docs/credit-debit-notes.md): Creating credit and debit notes referencing original documents, reason codes (Catalogo 09 and 10)
+
+## Summaries and Voided Documents
+
+- [Summaries and Voided](https://github.com/lleontor705/Khipu.Net/blob/master/docs/summaries.md): Daily receipt summaries, voided documents, async processing, CDR polling
+
+## Tax Calculator
+
+- [Tax Calculator](https://github.com/lleontor705/Khipu.Net/blob/master/docs/tax-calculator.md): IGV calculation, sale price, unit value, detractions, SUNAT rounding, amount in words
+
+## Signing and Sending
+
+- [Signing and Sending](https://github.com/lleontor705/Khipu.Net/blob/master/docs/signing-and-sending.md): X.509 certificates, XmlSigner, SunatService, SOAP client, document numbering
+
+## Validation
+
+- [Validation](https://github.com/lleontor705/Khipu.Net/blob/master/docs/validation.md): DocumentValidationEngine, RUC/DNI validation, field validators, error codes
+
+## API Reference
+
+- [API Reference](https://github.com/lleontor705/Khipu.Net/blob/master/docs/api-reference.md): Complete reference for all public classes, methods, and types across all namespaces
+
+## Optional
+
+- [Parity Baseline Governance](https://github.com/lleontor705/Khipu.Net/blob/master/docs/parity-baseline-governance.md): Internal testing governance for Greenter compatibility
+- [README](https://github.com/lleontor705/Khipu.Net/blob/master/README.md): Project overview and feature list

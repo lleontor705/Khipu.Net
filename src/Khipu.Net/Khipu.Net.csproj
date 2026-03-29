@@ -2,15 +2,41 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <Version>0.1.0-alpha</Version>
+    <Authors>Luis Leon</Authors>
+    <Company>Khipu.Net</Company>
     <Description>Libreria .NET Core 10 para Facturacion Electronica SUNAT Peru. 100% compatible con Greenter PHP. Incluye modelos, XML UBL 2.1, firma digital, cliente SOAP y validacion.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/lleontor705/Khipu.Net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lleontor705/Khipu.Net.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>SUNAT Peru Facturacion Electronica UBL Greenter Invoice</PackageTags>
+    <Copyright>Copyright (c) 2026 Luis Leon</Copyright>
+    <PackageReadmeFile>nuget-readme.md</PackageReadmeFile>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeProjectDlls</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Khipu.Core\Khipu.Core.csproj" />
-    <ProjectReference Include="..\Khipu.Data\Khipu.Data.csproj" />
-    <ProjectReference Include="..\Khipu.Xml\Khipu.Xml.csproj" />
-    <ProjectReference Include="..\Khipu.Ws\Khipu.Ws.csproj" />
-    <ProjectReference Include="..\Khipu.Validator\Khipu.Validator.csproj" />
+    <ProjectReference Include="..\Khipu.Core\Khipu.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Khipu.Data\Khipu.Data.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Khipu.Xml\Khipu.Xml.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Khipu.Ws\Khipu.Ws.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Khipu.Validator\Khipu.Validator.csproj" PrivateAssets="all" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\docs\nuget-readme.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <Target Name="IncludeProjectDlls">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)Khipu.Core.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Khipu.Data.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Khipu.Xml.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Khipu.Ws.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Khipu.Validator.dll" />
+    </ItemGroup>
+  </Target>
 
 </Project>

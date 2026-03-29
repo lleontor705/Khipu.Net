@@ -249,10 +249,21 @@ dotnet add package Khipu.Net
 
 ## 📚 **Documentación**
 
-- [README.md](README.md) - Guía completa
-- [docs/parity-baseline-governance.md](docs/parity-baseline-governance.md) - Gobierno de baseline parity y checkpoints de rollback
-- [Ejemplos](examples/) - Código de ejemplo
-- [Wiki](https://github.com/lleontor705/Khipu.Net/wiki) - Documentación detallada
+- [Getting Started](docs/getting-started.md) - Instalación y configuración
+- [Invoices](docs/invoices.md) - Facturas y boletas
+- [Credit/Debit Notes](docs/credit-debit-notes.md) - Notas de crédito y débito
+- [Summaries](docs/summaries.md) - Resúmenes diarios y bajas
+- [Tax Calculator](docs/tax-calculator.md) - Cálculos de impuestos
+- [Signing & Sending](docs/signing-and-sending.md) - Firma digital y envío SUNAT
+- [Validation](docs/validation.md) - Motor de validación
+- [API Reference](docs/api-reference.md) - Referencia completa de la API
+
+## 🤖 **AI / LLM Context**
+
+Este proyecto soporta el estándar [llms.txt](https://llmstxt.org/) para que modelos de IA puedan aprender a usar la librería:
+
+- [llms.txt](llms.txt) - Índice para LLMs (enlaces a documentación)
+- [llms-full.txt](llms-full.txt) - Documentación completa inline para LLMs
 
 ## 🤝 **Contribuir**
 

@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Cliente SOAP para servicios web SUNAT Peru. Parte de Khipu.Net.</Description>
   </PropertyGroup>
 
   <ItemGroup>

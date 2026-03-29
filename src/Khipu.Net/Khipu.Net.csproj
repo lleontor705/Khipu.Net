@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Libreria .NET Core 10 para Facturacion Electronica SUNAT Peru. 100% compatible con Greenter PHP. Incluye modelos, XML UBL 2.1, firma digital, cliente SOAP y validacion.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Khipu.Core\Khipu.Core.csproj" />
+    <ProjectReference Include="..\Khipu.Data\Khipu.Data.csproj" />
+    <ProjectReference Include="..\Khipu.Xml\Khipu.Xml.csproj" />
+    <ProjectReference Include="..\Khipu.Ws\Khipu.Ws.csproj" />
+    <ProjectReference Include="..\Khipu.Validator\Khipu.Validator.csproj" />
+  </ItemGroup>
+
+</Project>

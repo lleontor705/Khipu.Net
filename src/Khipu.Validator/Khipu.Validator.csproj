@@ -9,6 +9,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Motor de validacion para comprobantes electronicos SUNAT Peru (RUC, DNI, series). Parte de Khipu.Net.</Description>
   </PropertyGroup>
 
 </Project>

@@ -14,6 +14,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Core de facturacion electronica SUNAT Peru: factory, builder, firma digital, impuestos. Parte de Khipu.Net.</Description>
   </PropertyGroup>
 
 </Project>

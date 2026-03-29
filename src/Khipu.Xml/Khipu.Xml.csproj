@@ -8,6 +8,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Generacion XML UBL 2.1 para comprobantes electronicos SUNAT Peru. Parte de Khipu.Net.</Description>
   </PropertyGroup>
 
 </Project>

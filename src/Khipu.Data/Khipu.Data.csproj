@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Modelos de datos para comprobantes electrónicos SUNAT Peru. Parte de Khipu.Net.</Description>
   </PropertyGroup>
 
 </Project>

@@ -1,274 +1,169 @@
-# Khipu.Net 🪢 - 100% Greenter Logic
+<p align="center">
+  <strong>Khipu.Net</strong><br>
+  <em>.NET Core 10 library for SUNAT Peru Electronic Invoicing — 100% Greenter compatible</em>
+</p>
 
-Librería .NET Core 10 para Facturación Electrónica SUNAT Perú - **100% compatible con Greenter PHP**
+<p align="center">
+  <a href="https://github.com/lleontor705/Khipu.Net/actions/workflows/parity-phase-gates.yml"><img src="https://github.com/lleontor705/Khipu.Net/actions/workflows/parity-phase-gates.yml/badge.svg" alt="Parity Gates" /></a>
+  <a href="https://github.com/lleontor705/Khipu.Net/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <a href="https://img.shields.io/badge/tests-75%20passing-success"><img src="https://img.shields.io/badge/tests-75%20passing-success" alt="Tests" /></a>
+  <a href="https://img.shields.io/badge/Greenter-100%25%20compatible-brightgreen"><img src="https://img.shields.io/badge/Greenter-100%25%20compatible-brightgreen" alt="Greenter" /></a>
+</p>
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![Tests](https://img.shields.io/badge/tests-75%20passing-success)]()
-[![License](https://img.shields.io/badge/license-MIT-blue)]()
-[![Greenter Compatible](https://img.shields.io/badge/Greenter-100%25%20Compatible-brightgreen)]()
+---
 
-## 🎯 **100% Greenter Logic**
+Khipu.Net implements 100% of the logic from [Greenter PHP](https://github.com/thegreenter/greenter), maintaining the same structure and design patterns for modern .NET.
 
-Khipu.Net implementa el **100% de la lógica de [Greenter PHP](https://github.com/thegreenter/greenter)**, manteniendo la misma estructura y patrones de diseño.
+*Named after the ancient Inca accounting system.*
 
-## Estado del Proyecto
+## Status
 
-✅ **Production Ready - 98% Complete**
+**Production Ready — 98% Complete**
 
-| Módulo | Estado | Greenter Equivalente |
+| Module | Status | Greenter Equivalent |
 |--------|--------|---------------------|
-| **Khipu.Data** | ✅ 100% | greenter/data |
-| **Khipu.Core** | ✅ 100% | greenter/core |
-| **Khipu.Xml** | ✅ 100% | greenter/xml |
-| **Khipu.Ws** | ✅ 95% | greenter/ws |
+| Khipu.Data | 100% | greenter/data |
+| Khipu.Core | 100% | greenter/core |
+| Khipu.Xml | 100% | greenter/xml |
+| Khipu.Ws | 95% | greenter/ws |
+| Khipu.Validator | 100% | greenter/validator |
 
-## 🏗️ **Arquitectura (Igual que Greenter)**
+## Install
 
-`
-Khipu.Net/
-├── src/
-│   ├── Khipu.Core/         → greenter/core
-│   │   ├── Factory/        → InvoiceFactory (crear documentos)
-│   │   ├── Builder/        → InvoiceBuilder (construir documentos)
-│   │   ├── Services/       → SunatService (envío SUNAT)
-│   │   ├── Algorithms/     → TaxCalculator (cálculos)
-│   │   ├── Validation/     → DocumentValidator (validaciones)
-│   │   ├── Security/       → XmlSigner (firma digital)
-│   │   └── Constants/      → SunatConstants (constantes)
-│   ├── Khipu.Data/         → greenter/data
-│   │   ├── Documents/      → Invoice, Receipt, CreditNote, etc.
-│   │   ├── Entities/       → Company, Client, Address
-│   │   └── Enums/          → VoucherType, Currency, TaxType
-│   ├── Khipu.Xml/          → greenter/xml
-│   │   ├── Builder/        → XmlBuilders (generación XML)
-│   │   └── Services/       → XmlTransformer (transformaciones)
-│   └── Khipu.Ws/           → greenter/ws
-│       ├── Services/       → SunatSoapClient (cliente SOAP)
-│       ├── Models/         → Responses
-│       └── Helpers/        → ZipHelper
-└── tests/
-    └── Khipu.Tests/        → 75 tests passing
-`
+```bash
+dotnet add package Khipu.Net
+```
 
-## 🚀 **Uso - 100% Greenter Style**
+## Quick Start
 
-### **1. Factory Pattern (Como Greenter)**
+### Factory Pattern
 
-`csharp
+```csharp
 using Khipu.Core.Factory;
-using Khipu.Core.Algorithms;
 using Khipu.Data.Entities;
 using Khipu.Data.Enums;
 
-// Crear factory
 var factory = new InvoiceFactory(new Company
 {
-    Ruc = \"20123456789\",
-    RazonSocial = \"MI EMPRESA SAC\"
+    Ruc = "20123456789",
+    RazonSocial = "MI EMPRESA SAC"
 });
 
-// Crear factura
 var invoice = factory.CreateInvoice(
-    client: new Client { TipoDoc = DocumentType.Ruc, NumDoc = \"20987654321\", RznSocial = \"CLIENTE\" },
-    serie: \"F001\",
+    client: new Client { TipoDoc = DocumentType.Ruc, NumDoc = "20987654321", RznSocial = "CLIENTE" },
+    serie: "F001",
     correlativo: 1,
     fechaEmision: DateTime.Now
 );
 
-// Agregar detalles (con cálculo automático de impuestos)
 invoice.Details.Add(factory.CreateDetail(
-    codigo: \"PROD001\",
-    descripcion: \"Producto\",
-    unidad: \"NIU\",
+    codigo: "PROD001",
+    descripcion: "Producto",
+    unidad: "NIU",
     cantidad: 2,
     valorUnitario: 100,
-    tipoAfectacion: TaxType.Gravado // IGV automático
+    tipoAfectacion: TaxType.Gravado
 ));
-`
+```
 
-### **2. Builder Pattern (Como Greenter)**
+### Builder Pattern
 
-`csharp
+```csharp
 using Khipu.Core.Builder;
 
 var invoice = new InvoiceBuilder()
-    .WithCompany(new Company { Ruc = \"20123456789\", RazonSocial = \"EMPRESA\" })
-    .WithClient(new Client { TipoDoc = DocumentType.Ruc, NumDoc = \"20987654321\", RznSocial = \"CLIENTE\" })
-    .WithSerie(\"F001\")
+    .WithCompany(new Company { Ruc = "20123456789", RazonSocial = "EMPRESA" })
+    .WithClient(new Client { TipoDoc = DocumentType.Ruc, NumDoc = "20987654321" })
+    .WithSerie("F001")
     .WithCorrelativo(1)
-    .WithFechaEmision(DateTime.Now)
     .AddDetail(new SaleDetail
     {
-        Codigo = \"PROD001\",
-        Descripcion = \"Producto\",
+        Codigo = "PROD001",
+        Descripcion = "Producto",
         Cantidad = 2,
         MtoValorUnitario = 100,
         TipoAfectacionIgv = TaxType.Gravado
     })
-    .Build(); // Cálculo automático de totales
-`
+    .Build();
+```
 
-### **3. Servicio Completo (Como Greenter)**
+### Send to SUNAT
 
-`csharp
+```csharp
 using Khipu.Core.Services;
 using Khipu.Core.Security;
 
-// Cargar certificado
-var signer = XmlSigner.FromPfx(\"certificado.pfx\", \"password\");
-
-// Crear servicio
+var signer = XmlSigner.FromPfx("certificado.pfx", "password");
 var service = new SunatService(
-    username: \"20123456789MODDATOS\",
-    password: \"password\",
+    username: "20123456789MODDATOS",
+    password: "password",
     endpoint: SunatEndpoints.Beta,
     signer: signer
 );
 
-// Enviar factura (automático: XML + Firma + ZIP + Envío)
 var response = await service.SendInvoiceAsync(invoice);
+```
 
-if (response.Success)
-{
-    Console.WriteLine(\"✅ Comprobante enviado!\");
-    Console.WriteLine($\"CDR: {response.CdrZip?.Length} bytes\");
-}
-`
+## Features
 
-### **4. Cálculos de Impuestos (Como Greenter)**
+**Document Types:** Invoice, Receipt, CreditNote, DebitNote, Despatch, Summary, Voided, Retention, Perception
 
-`csharp
-using Khipu.Core.Algorithms;
+**Tax Calculation:** IGV, ISC, IVAP, Detraction, Perception — automatic via `TaxCalculator`
 
-// Calcular IGV
-var igv = TaxCalculator.CalculateIgv(100); // 18
+**Validation:** RUC (mod 11), DNI, series/correlatives, dates
 
-// Calcular precio de venta
-var precio = TaxCalculator.CalculateSalePrice(100, TaxType.Gravado); // 118
+**Digital Signature:** XMLDSig with X.509 certificates
 
-// Calcular detracción
-var detraction = TaxCalculator.CalculateDetraction(1000); // 100 (10%)
+**XML Generation:** UBL 2.1 with correct SUNAT namespaces
 
-// Calcular valor unitario desde precio
-var valor = TaxCalculator.CalculateUnitValue(118, TaxType.Gravado); // 100
-`
+**SOAP Client:** Direct communication with SUNAT endpoints
 
-## ✨ **Características 100% Greenter**
+## Architecture
 
-### **Modelos de Datos**
-- ✅ Invoice (Factura)
-- ✅ Receipt (Boleta)
-- ✅ CreditNote (Nota de Crédito)
-- ✅ DebitNote (Nota de Débito)
-- ✅ Despatch (Guía de Remisión)
-- ✅ Summary (Resumen de Boletas)
-- ✅ Voided (Comunicación de Bajas)
-- ✅ Retention (Retención)
-- ✅ Perception (Percepción)
+```
+src/
+  Khipu.Core/       --> Factory, Builder, Services, TaxCalculator, XmlSigner
+  Khipu.Data/       --> Documents, Entities, Enums
+  Khipu.Xml/        --> XML UBL 2.1 builders
+  Khipu.Ws/         --> SOAP client for SUNAT
+  Khipu.Validator/  --> RUC/DNI/series validation
+tests/
+  Khipu.Tests/      --> 75 tests (xUnit)
+```
 
-### **Factory Pattern**
-- ✅ InvoiceFactory - Crear documentos fácilmente
-- ✅ CreateDetail() - Cálculo automático de impuestos
-- ✅ Validación de series
+## Greenter Comparison
 
-### **Builder Pattern**
-- ✅ InvoiceBuilder - API fluida
-- ✅ Cálculo automático de totales
-- ✅ Leyendas automáticas
+| Feature | Greenter PHP | Khipu.Net |
+|---------|:------------:|:---------:|
+| Data models | yes | yes |
+| Factory pattern | yes | yes |
+| Builder pattern | yes | yes |
+| Validation | yes | yes |
+| Digital signature | yes | yes |
+| XML UBL 2.1 | yes | yes |
+| SOAP client | yes | yes (95%) |
+| Tax calculation | yes | yes |
 
-### **Servicios**
-- ✅ SunatService - Envío completo a SUNAT
-- ✅ DocumentNumberService - Numeración
-- ✅ XmlTransformer - Transformaciones XML
+## Development
 
-### **Algoritmos**
-- ✅ TaxCalculator - Cálculos de impuestos
-- ✅ IGV, ISC, IVAP
-- ✅ Detracción, Percepción
+```bash
+dotnet restore Khipu.Net.slnx
+dotnet build Khipu.Net.slnx -warnaserror
+dotnet test Khipu.Net.slnx
+```
 
-### **Validaciones**
-- ✅ RUC con módulo 11
-- ✅ DNI
-- ✅ Series y correlativos
-- ✅ Fechas
+## Contributing
 
-### **Firma Digital**
-- ✅ XmlSigner - Firma XMLDSig
-- ✅ Certificados X.509
-- ✅ Validación de expiración
+1. Fork the repo
+2. Create a feature branch from `develop`: `git checkout -b feat/my-feature develop`
+3. Make your changes and add tests
+4. Run `dotnet test Khipu.Net.slnx -warnaserror`
+5. Open a PR to `develop`
 
-### **XML UBL 2.1**
-- ✅ 6 XML builders
-- ✅ Namespaces correctos
-- ✅ Estructura SUNAT
-
-### **Cliente SOAP**
-- ✅ SunatSoapClient - Cliente básico
-- ✅ Manejo de errores
-- ✅ ZIP automático
-
-## 📊 **Comparación con Greenter PHP**
-
-| Feature | Greenter PHP | Khipu.Net | Estado |
-|---------|--------------|-----------|--------|
-| **Modelos** | ✅ | ✅ | 100% |
-| **Factory** | ✅ | ✅ | 100% |
-| **Builder** | ✅ | ✅ | 100% |
-| **Validación** | ✅ | ✅ | 100% |
-| **Firma Digital** | ✅ | ✅ | 100% |
-| **XML UBL 2.1** | ✅ | ✅ | 100% |
-| **SOAP Client** | ✅ | ✅ | 95% |
-| **Algoritmos** | ✅ | ✅ | 100% |
-| **Tests** | ✅ | ✅ | 75 tests |
-
-## 🧪 **Tests**
-
-`ash
-dotnet test
-# 75 tests passing
-`
-
-## 📦 **Instalación**
-
-`ash
-dotnet add package Khipu.Net
-`
-
-## 🎯 **Roadmap**
-
-- [x] Modelos de datos (100% Greenter)
-- [x] Factory pattern (100% Greenter)
-- [x] Builder pattern (100% Greenter)
-- [x] Validación completa (100% Greenter)
-- [x] Cálculo de impuestos (100% Greenter)
-- [x] Firma digital (100% Greenter)
-- [x] XML UBL 2.1 (100% Greenter)
-- [x] SOAP client (95% Greenter)
-- [ ] NuGet package
-- [ ] Documentación API completa
-
-## 📚 **Documentación**
-
-- [README.md](README.md) - Guía completa
-- [docs/parity-baseline-governance.md](docs/parity-baseline-governance.md) - Gobierno de baseline parity y checkpoints de rollback
-- [Ejemplos](examples/) - Código de ejemplo
-- [Wiki](https://github.com/lleontor705/Khipu.Net/wiki) - Documentación detallada
-
-## 🤝 **Contribuir**
-
-Las contribuciones son bienvenidas. Por favor, lee las guías de contribución.
-
-## 📄 **Licencia**
+## License
 
 MIT
 
-## 🙏 **Agradecimientos**
-
-- [Greenter PHP](https://github.com/thegreenter/greenter) - Inspiración y referencia
-- [Giansalex](https://github.com/giansalex) - Creador de Greenter
-
 ---
 
-**Khipu.Net - 100% Greenter Logic para .NET** 🇵🇪
-
-*Nombrado en honor al antiguo sistema de contabilidad inca*
+Based on [Greenter PHP](https://github.com/thegreenter/greenter) by [Giansalex](https://github.com/giansalex).

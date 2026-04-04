@@ -65,10 +65,10 @@ public class XmlSigner
             if (!certificate.HasPrivateKey)
                 throw new CertificateLoadException("El certificado no contiene clave privada");
             
-            if (certificate.NotAfter < DateTime.Now)
+            if (certificate.NotAfter < DateTime.UtcNow)
                 throw new CertificateLoadException($"El certificado expiró el {certificate.NotAfter:dd/MM/yyyy}");
             
-            if (certificate.NotBefore > DateTime.Now)
+            if (certificate.NotBefore > DateTime.UtcNow)
                 throw new CertificateLoadException($"El certificado no es válido hasta el {certificate.NotBefore:dd/MM/yyyy}");
             
             return new XmlSigner(certificate);
@@ -95,7 +95,7 @@ public class XmlSigner
                 throw new ArgumentNullException(nameof(xmlContent), "Contenido XML es requerido");
             
             // Cargar XML
-            var doc = new XmlDocument { PreserveWhitespace = true };
+            var doc = new XmlDocument { PreserveWhitespace = true, XmlResolver = null };
             doc.LoadXml(xmlContent);
 
             // Crear objeto SignedXml
@@ -103,11 +103,13 @@ public class XmlSigner
             {
                 SigningKey = _certificate.GetRSAPrivateKey()
             };
+            signedXml.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA256Url;
 
             // Configurar referencia
             var reference = new Reference
             {
-                Uri = ""
+                Uri = "",
+                DigestMethod = "http://www.w3.org/2001/04/xmlenc#sha256"
             };
 
             // Agregar transformaciones
@@ -162,8 +164,8 @@ public class XmlSigner
     {
         return _certificate != null && 
                _certificate.HasPrivateKey && 
-               _certificate.NotAfter > DateTime.Now &&
-               _certificate.NotBefore <= DateTime.Now;
+               _certificate.NotAfter > DateTime.UtcNow &&
+               _certificate.NotBefore <= DateTime.UtcNow;
     }
 
     /// <summary>

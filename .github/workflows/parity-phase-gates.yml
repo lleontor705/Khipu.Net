@@ -2,7 +2,7 @@ name: parity-phase-gates
 
 on:
   pull_request:
-    branches: [develop, master]
+    branches: [develop, main]
   workflow_dispatch:
 
 jobs:
@@ -137,6 +137,9 @@ jobs:
         run: |
           echo "P6 regression gate failed (tests=${{ steps.p6_tests.outputs.exit_code }}, comparator=${{ steps.p6_compare.outputs.exit_code }})" >&2
           exit 1
+
+  security:
+    uses: lleontor705/ats-deploy/.github/workflows/security-scan.yml@main
 
   publish-gate-summary:
     runs-on: ubuntu-latest

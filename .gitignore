@@ -51,3 +51,6 @@ publish/
 *.suo
 *.user
 *.userprefs
+
+# Node (Husky)
+node_modules/

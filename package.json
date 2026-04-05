@@ -1,0 +1,29 @@
+{
+  "name": "khipu.net",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">\r   <strong>Khipu.Net</strong><br>\r   <em>.NET Core 10 library for SUNAT Peru Electronic Invoicing — 100% Greenter compatible</em>\r </p>",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lleontor705/Khipu.Net.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lleontor705/Khipu.Net/issues"
+  },
+  "homepage": "https://github.com/lleontor705/Khipu.Net#readme",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

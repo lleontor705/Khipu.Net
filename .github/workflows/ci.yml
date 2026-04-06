@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  quality:
+    uses: lleontor705/ats-deploy-public/.github/workflows/quality-dotnet.yml@main
+    with:
+      dotnet-version: "10.0.x"
+      solution-file: "Khipu.Net.slnx"
+
+  security:
+    uses: lleontor705/ats-deploy-public/.github/workflows/security-scan.yml@main

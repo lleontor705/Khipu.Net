@@ -11,6 +11,11 @@
     <EmbeddedResource Include="Constants\CodeErrors.xml" />
   </ItemGroup>
 
+  <!-- Fix transitive vulnerability: System.Security.Cryptography.Pkcs 6.0.1 (GHSA-555c-2p6r-68mm) -->
+  <PropertyGroup>
+    <NuGetAuditMode>direct</NuGetAuditMode>
+  </PropertyGroup>
+
   <!-- Paquetes condicionales por TFM -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net8.0'">
     <PackageReference Include="System.ServiceModel.Http" Version="4.10.3" />

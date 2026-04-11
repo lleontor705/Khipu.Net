@@ -46,6 +46,9 @@ public class InvoiceXmlBuilder : XmlBuilderBase, IXmlBuilder<Invoice>
             invoice.FecVencimiento.HasValue ? new XElement(CbcNs + "DueDate", invoice.FecVencimiento.Value.ToString("yyyy-MM-dd")) : null,
             new XElement(CbcNs + "InvoiceTypeCode", new XAttribute("listID", invoice.TipoOperacion ?? "0101"), ((int)invoice.TipoDoc).ToString().PadLeft(2, '0')),
             invoice.Leyendas?.Count > 0 ? CreateLegends(invoice).ToArray() : null,
+            // Observación como Note sin languageLocaleID (Greenter: doc.observacion)
+            !string.IsNullOrEmpty(invoice.Observacion) ?
+                new XElement(CbcNs + "Note", new XCData(invoice.Observacion)) : null,
             new XElement(CbcNs + "DocumentCurrencyCode", currency),
             // Orden de compra (Greenter: compra)
             !string.IsNullOrEmpty(invoice.Compra) ?
@@ -60,8 +63,10 @@ public class InvoiceXmlBuilder : XmlBuilderBase, IXmlBuilder<Invoice>
             CreateCustomerParty(invoice.Client),
             // Seller diferente (Greenter: seller)
             invoice.Seller != null ? CreateSellerSupplierParty(invoice.Seller) : null,
+            // Delivery (Greenter: dirección de entrega)
+            invoice.DireccionEntrega != null ? CreateDelivery(invoice.DireccionEntrega) : null,
             // Detracción
-            invoice.Detraccion?.Mount > 0 ? CreateDetraction(invoice).ToArray() : null,
+            invoice.Detraccion?.Monto > 0 ? CreateDetraction(invoice).ToArray() : null,
             // Forma de pago (Greenter: formaPago + cuotas)
             CreatePaymentTerms(invoice, currency),
             // Anticipos
@@ -96,8 +101,8 @@ public class InvoiceXmlBuilder : XmlBuilderBase, IXmlBuilder<Invoice>
     {
         var currency = GetCurrencyCode(invoice.Moneda);
 
-        return
-        [
+        return new XElement[]
+        {
             new XElement(CacNs + "PaymentMeans",
                 new XElement(CbcNs + "ID", "Detraccion"),
                 new XElement(CbcNs + "PaymentMeansCode", invoice.Detraccion!.CodMedioPago ?? "001"),
@@ -111,8 +116,8 @@ public class InvoiceXmlBuilder : XmlBuilderBase, IXmlBuilder<Invoice>
                 invoice.Detraccion.Porcentaje.HasValue
                     ? new XElement(CbcNs + "PaymentPercent", FormatAmount(invoice.Detraccion.Porcentaje.Value))
                     : null,
-                new XElement(CbcNs + "Amount", new XAttribute("currencyID", currency), FormatAmount(invoice.Detraccion.Mount)))
-        ];
+                new XElement(CbcNs + "Amount", new XAttribute("currencyID", currency), FormatAmount(invoice.Detraccion.Monto)))
+        };
     }
 
     /// <summary>
@@ -233,6 +238,34 @@ public class InvoiceXmlBuilder : XmlBuilderBase, IXmlBuilder<Invoice>
                 )
             )
         );
+    }
+
+    /// <summary>
+    /// Delivery element (Greenter: dirección de entrega)
+    /// </summary>
+    private XElement CreateDelivery(Data.Entities.Address addr)
+    {
+        return new XElement(CacNs + "Delivery",
+            new XElement(CacNs + "DeliveryLocation",
+                new XElement(CacNs + "Address",
+                    !string.IsNullOrEmpty(addr.Ubigeo) ?
+                        new XElement(CbcNs + "ID", addr.Ubigeo) : null,
+                    !string.IsNullOrEmpty(addr.Urbanizacion) ?
+                        new XElement(CbcNs + "CitySubdivisionName", addr.Urbanizacion) : null,
+                    !string.IsNullOrEmpty(addr.Provincia) ?
+                        new XElement(CbcNs + "CityName", addr.Provincia) : null,
+                    !string.IsNullOrEmpty(addr.Departamento) ?
+                        new XElement(CbcNs + "CountrySubentity", addr.Departamento) : null,
+                    !string.IsNullOrEmpty(addr.Distrito) ?
+                        new XElement(CbcNs + "District", addr.Distrito) : null,
+                    new XElement(CacNs + "AddressLine",
+                        new XElement(CbcNs + "Line", new XCData(addr.Direccion))),
+                    new XElement(CacNs + "Country",
+                        new XElement(CbcNs + "IdentificationCode",
+                            new XAttribute("listID", "ISO 3166-1"),
+                            new XAttribute("listAgencyName", "United Nations Economic Commission for Europe"),
+                            new XAttribute("listName", "Country"),
+                            addr.CodigoPais ?? "PE")))));
     }
 
     /// <summary>

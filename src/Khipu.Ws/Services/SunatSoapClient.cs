@@ -15,9 +15,9 @@ public class SunatSoapClient : ISunatClient
 
     public SunatSoapClient(string username, string password, string endpoint, HttpClient? httpClient = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(username);
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
-        ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
+        Internal.Guard.NotNullOrWhiteSpace(username);
+        Internal.Guard.NotNullOrWhiteSpace(password);
+        Internal.Guard.NotNullOrWhiteSpace(endpoint);
 
         _httpClient = httpClient ?? new HttpClient();
         _httpClient.BaseAddress = new Uri(endpoint, UriKind.Absolute);
@@ -38,7 +38,7 @@ public class SunatSoapClient : ISunatClient
     {
         try
         {
-            var envelope = BuildEnvelope("getStatus", [new XElement("ticket", ticket)]);
+            var envelope = BuildEnvelope("getStatus", new XElement[] { new XElement("ticket", ticket) });
             var xml = await PostSoapAsync(envelope, cancellationToken).ConfigureAwait(false);
             var doc = XDocument.Parse(xml);
 
@@ -62,12 +62,13 @@ public class SunatSoapClient : ISunatClient
         {
             var envelope = BuildEnvelope(
                 "getStatusCdr",
-                [
+                new XElement[]
+                {
                     new XElement("rucComprobante", query.Ruc),
                     new XElement("tipoComprobante", query.TipoComprobante),
                     new XElement("serieComprobante", query.Serie),
                     new XElement("numeroComprobante", query.Correlativo)
-                ]);
+                });
 
             var xml = await PostSoapAsync(envelope, cancellationToken).ConfigureAwait(false);
             var doc = XDocument.Parse(xml);
@@ -93,10 +94,11 @@ public class SunatSoapClient : ISunatClient
         {
             var envelope = BuildEnvelope(
                 operation,
-                [
+                new XElement[]
+                {
                     new XElement("fileName", request.FileNameWithoutExtension),
                     new XElement("contentFile", Convert.ToBase64String(request.ZipContent))
-                ]);
+                });
 
             var xml = await PostSoapAsync(envelope, cancellationToken).ConfigureAwait(false);
             var doc = XDocument.Parse(xml);

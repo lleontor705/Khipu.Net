@@ -1,5 +1,6 @@
 namespace Khipu.Data.Documents;
 
+using Khipu.Data.Common;
 using Khipu.Data.Entities;
 using Khipu.Data.Enums;
 
@@ -17,6 +18,12 @@ public class Retention
     public List<RetentionDetail> Details { get; set; } = new();
     public decimal MtoRetencion { get; set; }
     public decimal MtoTotal { get; set; }
+    /// <summary>Código de régimen de retención (Catálogo 23 SUNAT)</summary>
+    public string? Regimen { get; set; }
+    /// <summary>Tasa de retención (ej: 3.00 para 3%)</summary>
+    public decimal? Tasa { get; set; }
+    /// <summary>Observaciones</summary>
+    public string? Observacion { get; set; }
 }
 
 /// <summary>
@@ -33,6 +40,8 @@ public class RetentionDetail
     public decimal? ImpPagar { get; set; }
     public string CodMoneda { get; set; } = "PEN";
     public List<Payment>? Pagos { get; set; }
+    /// <summary>Tipo de cambio (si moneda diferente a PEN)</summary>
+    public Exchange? TipoCambio { get; set; }
 }
 
 /// <summary>

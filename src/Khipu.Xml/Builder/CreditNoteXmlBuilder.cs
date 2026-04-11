@@ -170,6 +170,16 @@ public class CreditNoteXmlBuilder : XmlBuilderBase, IXmlBuilder<CreditNote>
                         )
                     )
                 ),
+                // OtroTributo (Greenter: otroTributo subtotal en línea)
+                detail.OtroTributo.HasValue && detail.OtroTributo > 0 ?
+                    new XElement(CacNs + "TaxSubtotal",
+                        new XElement(CbcNs + "TaxableAmount", new XAttribute("currencyID", currencyCode), FormatAmount(detail.MtoBaseOth ?? detail.MtoValorVenta)),
+                        new XElement(CbcNs + "TaxAmount", new XAttribute("currencyID", currencyCode), FormatAmount(detail.OtroTributo.Value)),
+                        new XElement(CacNs + "TaxCategory",
+                            new XElement(CbcNs + "TaxScheme",
+                                new XElement(CbcNs + "ID", "9999"),
+                                new XElement(CbcNs + "Name", "OTROS"),
+                                new XElement(CbcNs + "TaxTypeCode", "OTH")))) : null,
                 detail.Icbper.HasValue && detail.Icbper > 0 ?
                     new XElement(CacNs + "TaxSubtotal",
                         new XElement(CbcNs + "TaxableAmount", new XAttribute("currencyID", currencyCode), FormatAmount(0m)),

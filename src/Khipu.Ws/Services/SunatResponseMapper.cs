@@ -105,7 +105,7 @@ public static class SunatResponseMapper
 
     public static SunatResponse MapSendTransportException(Exception exception)
     {
-        ArgumentNullException.ThrowIfNull(exception);
+        Internal.Guard.NotNull(exception);
 
         return exception switch
         {
@@ -117,13 +117,13 @@ public static class SunatResponseMapper
 
     public static TicketResponse MapStatusTransportException(Exception exception)
     {
-        ArgumentNullException.ThrowIfNull(exception);
+        Internal.Guard.NotNull(exception);
         return CreateStatusTransportError(exception.Message);
     }
 
     public static CdrResponse MapCdrTransportException(Exception exception)
     {
-        ArgumentNullException.ThrowIfNull(exception);
+        Internal.Guard.NotNull(exception);
         return CreateCdrTransportError(UnknownCode, exception.Message);
     }
 

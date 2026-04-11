@@ -99,6 +99,60 @@ if (cdr.IsAccepted)
     Console.WriteLine("Document accepted by SUNAT");
 ```
 
+## GRE REST API (moderno)
+
+SUNAT promueve la API GRE como alternativa moderna al SOAP. Usa OAuth2 con tokens JWT.
+
+```csharp
+using Khipu.Ws.Services;
+
+var greClient = new GreClient(
+    clientId: "tu-client-id",
+    clientSecret: "tu-client-secret",
+    ruc: "20123456789",
+    solUser: "MODDATOS",
+    solPassword: "clavesol"
+);
+
+// Misma interfaz ISunatClient
+var service = new SunatService(greClient, signer);
+var response = await service.SendInvoiceAsync(invoice);
+```
+
+El token OAuth2 se gestiona automaticamente:
+- Se solicita al primer envio
+- Se cachea en memoria con thread safety (SemaphoreSlim)
+- Se renueva 1 minuto antes de expirar
+
+### Consultar estado (GRE)
+
+```csharp
+var status = await greClient.GetStatusAsync("TICKET123");
+if (status.StatusCode == "0" && status.CdrZip != null)
+{
+    var cdr = CdrReader.ParseFromZip(status.CdrZip);
+}
+```
+
+## Parsear CDR
+
+```csharp
+using Khipu.Ws.Reader;
+
+var cdr = CdrReader.ParseFromZip(response.CdrZip);
+// cdr.Id, cdr.Code, cdr.Description, cdr.Notes, cdr.IsAccepted
+```
+
+### Codigos de error SUNAT (1710)
+
+```csharp
+using Khipu.Ws.Constants;
+
+string msg = SunatErrorCodes.GetMessage("2017");
+bool ok    = SunatErrorCodes.IsAccepted(cdr.Code);
+string cat = SunatErrorCodes.GetCategory("0306");
+```
+
 ## Using the SOAP client directly
 
 For advanced scenarios, use `SunatSoapClient` directly:

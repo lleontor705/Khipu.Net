@@ -11,6 +11,31 @@ public class DocumentValidationEngine : IDocumentValidationEngine
         return BuildResult(RuleCatalog.ValidateInvoice(invoice));
     }
 
+    public ValidationResult ValidateCreditNote(CreditNote note)
+    {
+        return BuildResult(RuleCatalog.ValidateCreditNote(note));
+    }
+
+    public ValidationResult ValidateDebitNote(DebitNote note)
+    {
+        return BuildResult(RuleCatalog.ValidateDebitNote(note));
+    }
+
+    public ValidationResult ValidateDespatch(Despatch despatch)
+    {
+        return BuildResult(RuleCatalog.ValidateDespatch(despatch));
+    }
+
+    public ValidationResult ValidatePerception(Perception perception)
+    {
+        return BuildResult(RuleCatalog.ValidatePerception(perception));
+    }
+
+    public ValidationResult ValidateRetention(Retention retention)
+    {
+        return BuildResult(RuleCatalog.ValidateRetention(retention));
+    }
+
     public ValidationResult ValidateSummary(Summary summary)
     {
         return BuildResult(RuleCatalog.ValidateSummary(summary));

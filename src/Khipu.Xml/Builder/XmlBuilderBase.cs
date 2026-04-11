@@ -56,7 +56,15 @@ public abstract class XmlBuilderBase
                 new XElement(CacNs + "PartyLegalEntity",
                     new XElement(CbcNs + "RegistrationName", new XCData(company.RazonSocial)),
                     CreateRegistrationAddress(addr)
-                )
+                ),
+                // Contact (Greenter: email, telephone)
+                !string.IsNullOrEmpty(company.Email) || !string.IsNullOrEmpty(company.Telephone) ?
+                    new XElement(CacNs + "Contact",
+                        !string.IsNullOrEmpty(company.Telephone) ?
+                            new XElement(CbcNs + "Telephone", company.Telephone) : null,
+                        !string.IsNullOrEmpty(company.Email) ?
+                            new XElement(CbcNs + "ElectronicMail", company.Email) : null
+                    ) : null
             )
         );
     }
@@ -82,10 +90,18 @@ public abstract class XmlBuilderBase
                             new XElement(CbcNs + "Line", new XCData(addr.Direccion))
                         ),
                         new XElement(CacNs + "Country",
-                            new XElement(CbcNs + "IdentificationCode", "PE")
+                            new XElement(CbcNs + "IdentificationCode", addr.CodigoPais ?? "PE")
                         )
                     ) : null
-                )
+                ),
+                // Contact (Greenter: email, telephone)
+                !string.IsNullOrEmpty(client.Email) || !string.IsNullOrEmpty(client.Telephone) ?
+                    new XElement(CacNs + "Contact",
+                        !string.IsNullOrEmpty(client.Telephone) ?
+                            new XElement(CbcNs + "Telephone", client.Telephone) : null,
+                        !string.IsNullOrEmpty(client.Email) ?
+                            new XElement(CbcNs + "ElectronicMail", client.Email) : null
+                    ) : null
             )
         );
     }
@@ -104,7 +120,7 @@ public abstract class XmlBuilderBase
                 new XElement(CbcNs + "Line", new XCData(addr.Direccion))
             ),
             new XElement(CacNs + "Country",
-                new XElement(CbcNs + "IdentificationCode", "PE")
+                new XElement(CbcNs + "IdentificationCode", addr.CodigoPais ?? "PE")
             )
         );
     }
@@ -405,7 +421,24 @@ public abstract class XmlBuilderBase
                         new XElement(CbcNs + "ID",
                             new XAttribute("schemeID", "0160"),
                             detail.CodProdGS1)
-                    ) : null
+                    ) : null,
+                // AdditionalItemProperty (Greenter: atributos)
+                detail.Atributos?.Select(attr => new XElement(CacNs + "AdditionalItemProperty",
+                    new XElement(CbcNs + "Name", attr.Name),
+                    !string.IsNullOrEmpty(attr.Code) ?
+                        new XElement(CbcNs + "NameCode", attr.Code) : null,
+                    !string.IsNullOrEmpty(attr.Value) ?
+                        new XElement(CbcNs + "Value", attr.Value) : null,
+                    attr.FecInicio.HasValue || attr.FecFin.HasValue ?
+                        new XElement(CacNs + "UsabilityPeriod",
+                            attr.FecInicio.HasValue ?
+                                new XElement(CbcNs + "StartDate", attr.FecInicio.Value.ToString("yyyy-MM-dd")) : null,
+                            attr.FecFin.HasValue ?
+                                new XElement(CbcNs + "EndDate", attr.FecFin.Value.ToString("yyyy-MM-dd")) : null,
+                            attr.Duracion.HasValue ?
+                                new XElement(CbcNs + "DurationMeasure", attr.Duracion.Value) : null
+                        ) : null
+                ))
             ),
             new XElement(CacNs + "Price",
                 new XElement(CbcNs + "PriceAmount",

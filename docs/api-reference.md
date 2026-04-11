@@ -11,8 +11,9 @@
 | `CreditNote` | Nota de credito | BaseSale |
 | `DebitNote` | Nota de debito | BaseSale |
 | `Despatch` | Guia de remision | - |
-| `Summary` | Resumen diario de boletas | - |
+| `Summary` | Resumen diario | - |
 | `Voided` | Comunicacion de bajas | - |
+| `Reversion` | Reversion de documentos | Voided |
 | `Retention` | Comprobante de retencion | - |
 | `Perception` | Comprobante de percepcion | - |
 
@@ -20,16 +21,30 @@
 
 | Class | Key properties |
 |-------|---------------|
-| `Company` | Ruc, RazonSocial, NombreComercial, Address |
-| `Client` | TipoDoc, NumDoc, RznSocial, Address |
-| `Address` | Ubigeo, Departamento, Provincia, Distrito, Direccion |
-| `SaleDetail` | Codigo, Descripcion, Unidad, Cantidad, MtoValorUnitario, TipoAfectacionIgv |
+| `Company` | Ruc, RazonSocial, NombreComercial, Address, Email, Telephone |
+| `Client` | TipoDoc, NumDoc, RznSocial, Address, Email, Telephone |
+| `Address` | Ubigeo, Departamento, Provincia, Distrito, Direccion, CodigoLocal, CodigoPais |
+| `SaleDetail` | Codigo, Descripcion, Unidad, Cantidad, MtoValorUnitario, TipoAfectacionIgv, Atributos |
+| `DespatchDetail` | Codigo, Descripcion, Unidad, Cantidad, CodProdSunat, Atributos |
+
+### Common
+
+| Class | Key properties |
+|-------|---------------|
 | `Legend` | Code, Value |
 | `Charge` | CodTipo, Factor, Monto, MontoBase |
 | `Cuota` | Moneda, Monto, FechaPago |
-| `Detraction` | Mount, CtaBanco, CodBienDetraccion, Porcentaje |
-| `PaymentTerms` | Tipo (Contado/Credito), Moneda, Monto |
+| `Detraction` | Monto, CtaBanco, CodBienDetraccion, Porcentaje, ValueRef |
+| `PaymentTerms` | Tipo, Moneda, Monto |
 | `Prepayment` | Nro, TipoDoc, NroDoc, Total |
+| `Document` | TipoDoc, NroDoc |
+| `AdditionalDoc` | TipoDesc, Tipo, Nro, Emisor |
+| `DetailAttribute` | Code, Name, Value, FecInicio, FecFin, Duracion |
+| `Exchange` | MonedaRef, MonedaObj, Factor, Fecha |
+| `Transportist` | TipoDoc, NumDoc, RznSocial, Placa |
+| `Vehicle` | Placa, NroCirculacion, NroPlacaRemolque |
+| `Driver` | TipoDoc, NumDoc, Nombres, Apellidos, Licencia |
+| `Payment` | FormaPago, Monto, NumOperacion |
 
 ### Enums
 
@@ -40,162 +55,201 @@
 | `Currency` | Pen(1), Usd(2), Eur(3) |
 | `TaxType` | Gravado(10), Exonerado(20), Inafecto(30), Exportacion(40), Gratuito(21), Ivap(17) |
 
+### Generators
+
+```csharp
+DocumentGenerator.CreateInvoice(correlativo)
+DocumentGenerator.CreateReceipt(correlativo)
+DocumentGenerator.CreateCreditNote(correlativo)
+DocumentGenerator.CreateDebitNote(correlativo)
+DocumentGenerator.CreateDespatch(correlativo)
+DocumentGenerator.CreatePerception(correlativo)
+DocumentGenerator.CreateRetention(correlativo)
+DocumentGenerator.CreateSummary()
+DocumentGenerator.CreateVoided()
+```
+
 ---
 
 ## Khipu.Core
 
-### InvoiceFactory
-
-```csharp
-public InvoiceFactory(Company company)
-
-public Invoice CreateInvoice(Client client, string serie, int correlativo, DateTime fechaEmision)
-public Receipt CreateReceipt(Client client, string serie, int correlativo, DateTime fechaEmision)
-public CreditNote CreateCreditNote(Client client, string serie, int correlativo,
-    DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
-public DebitNote CreateDebitNote(Client client, string serie, int correlativo,
-    DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
-public SaleDetail CreateDetail(string codigo, string descripcion, string unidad,
-    decimal cantidad, decimal valorUnitario, TaxType tipoAfectacion = TaxType.Gravado)
-```
-
 ### InvoiceBuilder
 
 ```csharp
-public IInvoiceBuilder WithCompany(Company company)
-public IInvoiceBuilder WithClient(Client client)
-public IInvoiceBuilder WithSerie(string serie)
-public IInvoiceBuilder WithCorrelativo(int correlativo)
-public IInvoiceBuilder WithFechaEmision(DateTime fecha)
-public IInvoiceBuilder AddDetail(SaleDetail detail)
-public Invoice Build()
-public bool Validate()
-public List<string> GetErrors()
+WithCompany(Company) → WithClient(Client) → WithSerie(string) → WithCorrelativo(int)
+→ WithFechaEmision(DateTime) → AddDetail(SaleDetail) → Build() → Invoice
+```
+
+### InvoiceFactory
+
+```csharp
+new InvoiceFactory(Company)
+  .CreateInvoice(Client, serie, correlativo, fecha)
+  .CreateReceipt(Client, serie, correlativo, fecha)
+  .CreateCreditNote(Client, serie, correlativo, fecha, docAfectado, codMotivo, desMotivo)
+  .CreateDebitNote(Client, serie, correlativo, fecha, docAfectado, codMotivo, desMotivo)
+  .CreateDetail(codigo, descripcion, unidad, cantidad, valorUnitario, tipoAfectacion)
 ```
 
 ### TaxCalculator
 
 ```csharp
-public static decimal CalculateIgv(decimal taxableAmount)
-public static decimal CalculateSalePrice(decimal baseAmount, TaxType taxType)
-public static decimal CalculateUnitValue(decimal salePrice, TaxType taxType)
-public static decimal CalculateDetraction(decimal baseAmount, decimal rate = 0.10m)
-```
-
-### RoundingPolicy
-
-```csharp
-public static decimal RoundSunat(decimal value)
-    // 2 decimal places, MidpointRounding.AwayFromZero
+TaxCalculator.CalculateIgv(decimal taxableAmount) → decimal
+TaxCalculator.CalculateSalePrice(decimal base, TaxType type) → decimal
+TaxCalculator.CalculateUnitValue(decimal salePrice, TaxType type) → decimal
+TaxCalculator.CalculateDetraction(decimal base, decimal rate = 0.10m) → decimal
 ```
 
 ### AmountInWordsEsPe
 
 ```csharp
-public static string Convert(decimal amount, Currency currency)
-    // Returns: "SON: [words] CON [cents]/100 [currency]"
+AmountInWordsEsPe.Convert(1180.50m, Currency.Pen)
+// → "SON: MIL CIENTO OCHENTA CON 50/100 SOLES"
 ```
 
 ### XmlSigner
 
 ```csharp
-public XmlSigner(X509Certificate2 certificate)
-public static XmlSigner FromPfx(string pfxPath, string password)
-public string Sign(string xmlContent)
-public bool IsCertificateValid()
-public CertificateInfo GetCertificateInfo()
+XmlSigner.FromPfx(string pfxPath, string password) → XmlSigner
+signer.Sign(string xmlContent) → string
+signer.IsCertificateValid() → bool
+signer.GetCertificateInfo() → CertificateInfo
 ```
 
 ### SunatService
 
 ```csharp
-public SunatService(string username, string password, string endpoint, XmlSigner? signer = null)
+new SunatService(string user, string pass, string endpoint, XmlSigner? signer)
+new SunatService(ISunatClient client, XmlSigner? signer)
 
-public Task<SunatResponse> SendInvoiceAsync(Invoice invoice)
-public Task<SunatResponse> SendCreditNoteAsync(CreditNote note)
-public Task<SunatResponse> SendSummaryAsync(Summary summary)
-public Task<SunatResponse> SendVoidedAsync(Voided voided)
-public Task<TicketResponse> GetStatusAsync(string ticket)
-public Task<CdrResponse> GetCdrAsync(string ruc, string tipoComprobante, string serie, int correlativo)
-public Task<CdrResponse> SendSummaryAndQueryCdrAsync(Summary summary, string tipoComprobante,
-    string serie, int correlativo, int maxStatusChecks = 3, TimeSpan? pollInterval = null)
+SendInvoiceAsync(Invoice) → Task<SunatResponse>
+SendReceiptAsync(Receipt) → Task<SunatResponse>
+SendCreditNoteAsync(CreditNote) → Task<SunatResponse>
+SendDebitNoteAsync(DebitNote) → Task<SunatResponse>
+SendDespatchAsync(Despatch) → Task<SunatResponse>
+SendSummaryAsync(Summary) → Task<SunatResponse>
+SendVoidedAsync(Voided) → Task<SunatResponse>
+GetStatusAsync(string ticket) → Task<TicketResponse>
+GetCdrAsync(ruc, tipo, serie, corr) → Task<CdrResponse>
+SendSummaryAndQueryCdrAsync(...) → Task<CdrResponse>
 ```
 
-### DocumentNumberService
+### HtmlReport
 
 ```csharp
-public DocumentNumberService(int initialCorrelativo = 1)
-
-public int GetNextCorrelativo()
-public string GenerateDocumentNumber(string serie, int correlativo)
-public string GenerateFileName(string ruc, string tipoDoc, string serie, int correlativo)
-public string GenerateZipName(string ruc, string tipoDoc, string serie, int correlativo)
+RenderInvoice(Invoice, ReportParameters?) → string
+RenderReceipt(Receipt, ReportParameters?) → string
+RenderCreditNote(CreditNote, ReportParameters?) → string
+RenderDebitNote(DebitNote, ReportParameters?) → string
+RenderDespatch(Despatch, ReportParameters?) → string
+RenderPerception(Perception, ReportParameters?) → string
+RenderRetention(Retention, ReportParameters?) → string
+RenderSummary(Summary, ReportParameters?) → string
+RenderVoided(Voided, ReportParameters?) → string
 ```
 
-### DocumentValidator
+### QrGenerator
 
 ```csharp
-public static bool ValidateRuc(string ruc)
-public static bool ValidateDni(string dni)
-public static bool ValidateDocument(string tipoDoc, string numDoc)
-public static bool ValidateSerie(string serie, string tipoDoc)
-public static bool ValidateCorrelativo(int correlativo)
+QrGenerator.GenerateQrSvg(string content) → string
+QrGenerator.GenerateQrBase64(string content) → string (data URI)
+QrGenerator.GenerateQrPng(string content) → byte[]
+QrGenerator.GenerateInvoiceQrSvg(Invoice, hash?) → string
+QrGenerator.GenerateInvoiceQrBase64(Invoice, hash?) → string
+QrGenerator.GenerateDespatchQrSvg(Despatch) → string
+QrGenerator.GetInvoiceQrContent(Invoice, hash?) → string
+QrGenerator.GetReceiptQrContent(Receipt, hash?) → string
+QrGenerator.GetDespatchQrContent(Despatch) → string
+```
+
+### PdfExporter
+
+```csharp
+PdfExporter.HtmlToPdfAsync(string html, PdfOptions?) → Task<byte[]>
+PdfExporter.SavePdfAsync(string html, string path, PdfOptions?) → Task
 ```
 
 ---
 
 ## Khipu.Xml
 
-### XML Builders
+### Builders (IXmlBuilder&lt;T&gt;)
 
-All builders implement `IXmlBuilder<T>`:
+| Builder | Type | Root element |
+|---------|------|-------------|
+| `InvoiceXmlBuilder` | Invoice | Invoice |
+| `ReceiptXmlBuilder` | Receipt | Invoice |
+| `CreditNoteXmlBuilder` | CreditNote | CreditNote |
+| `DebitNoteXmlBuilder` | DebitNote | DebitNote |
+| `DespatchXmlBuilder` | Despatch | DespatchAdvice |
+| `PerceptionXmlBuilder` | Perception | Perception |
+| `RetentionXmlBuilder` | Retention | Retention |
+| `SummaryXmlBuilder` | Summary | SummaryDocuments |
+| `VoidedXmlBuilder` | Voided | VoidedDocuments |
+
+### Parser
 
 ```csharp
-public interface IXmlBuilder<T>
-{
-    string Build(T document);        // Returns UBL 2.1 XML
-    string GetFileName(T document);  // Returns filename
-}
+XmlDocumentParser.ParseInvoice(string xml) → Invoice?
+XmlDocumentParser.ParseCreditNote(string xml) → CreditNote?
+XmlDocumentParser.ParseDebitNote(string xml) → DebitNote?
+XmlDocumentParser.ParseDespatch(string xml) → Despatch?
+XmlDocumentParser.ParsePerception(string xml) → Perception?
+XmlDocumentParser.ParseRetention(string xml) → Retention?
+XmlDocumentParser.ParseSummary(string xml) → Summary?
+XmlDocumentParser.ParseVoided(string xml) → Voided?
 ```
-
-| Builder | Document type | XML root element |
-|---------|--------------|------------------|
-| `InvoiceXmlBuilder` | Invoice, Receipt | `Invoice` |
-| `CreditNoteXmlBuilder` | CreditNote | `CreditNote` |
-| `DebitNoteXmlBuilder` | DebitNote | `DebitNote` |
-| `ReceiptXmlBuilder` | Receipt | `Invoice` |
-| `SummaryXmlBuilder` | Summary | `SummaryDocuments` |
-| `VoidedXmlBuilder` | Voided | `VoidedDocuments` |
 
 ---
 
 ## Khipu.Ws
 
-### SunatSoapClient
+### ISunatClient (interface)
 
 ```csharp
-public SunatSoapClient(string username, string password, string endpoint, HttpClient? httpClient = null)
-
-public Task<SunatResponse> SendBillAsync(SunatSendRequest request, CancellationToken ct = default)
-public Task<SunatResponse> SendSummaryAsync(SunatSendRequest request, CancellationToken ct = default)
-public Task<TicketResponse> GetStatusAsync(string ticket, CancellationToken ct = default)
-public Task<CdrResponse> GetCdrAsync(CdrQuery query, CancellationToken ct = default)
+SendBillAsync(SunatSendRequest, CancellationToken) → Task<SunatResponse>
+SendSummaryAsync(SunatSendRequest, CancellationToken) → Task<SunatResponse>
+GetStatusAsync(string ticket, CancellationToken) → Task<TicketResponse>
+GetCdrAsync(CdrQuery, CancellationToken) → Task<CdrResponse>
 ```
 
-### Models
+Implementations: `SunatSoapClient` (SOAP), `GreClient` (REST).
+
+### GreClient
 
 ```csharp
-public sealed record SunatSendRequest(byte[] ZipContent, string FileNameWithoutExtension,
-    string? Ruc = null, string? TipoDocumento = null)
-
-public sealed record CdrQuery(string Ruc, string TipoComprobante, string Serie, int Correlativo)
+new GreClient(clientId, clientSecret, ruc, solUser, solPassword,
+    authEndpoint?, cpeEndpoint?, httpClient?)
 ```
 
-| Response | Key properties |
-|----------|---------------|
-| `SunatResponse` | Success, Ticket, CdrZip, ErrorCode, ErrorMessage |
+### CdrReader
+
+```csharp
+CdrReader.Parse(string? xml) → CdrDetail?
+CdrReader.ParseFromZip(byte[]? zipData) → CdrDetail?
+```
+
+### SunatErrorCodes
+
+```csharp
+SunatErrorCodes.GetMessage(string? code) → string?
+SunatErrorCodes.GetMessageOrDefault(string? code, string default) → string
+SunatErrorCodes.IsAccepted(string? code) → bool    // 0 or >= 4000
+SunatErrorCodes.IsObservation(string? code) → bool  // >= 4000
+SunatErrorCodes.IsRejection(string? code) → bool    // 1-3999
+SunatErrorCodes.GetCategory(string? code) → string
+SunatErrorCodes.GetAll() → IReadOnlyDictionary<string, string>
+SunatErrorCodes.Count → int  // 1710
+```
+
+### Response models
+
+| Class | Properties |
+|-------|-----------|
+| `SunatResponse` | Success, Ticket, CdrZip, ErrorCode, ErrorMessage, StatusCode |
 | `TicketResponse` | Success, Ticket, CdrZip, StatusCode, ErrorMessage |
 | `CdrResponse` | Success, CdrZip, CdrXml, IsAccepted, ErrorCode, ErrorMessage |
+| `CdrDetail` | Id, Code, Description, Notes, Reference, IsAccepted |
 
 ---
 
@@ -204,14 +258,45 @@ public sealed record CdrQuery(string Ruc, string TipoComprobante, string Serie, 
 ### DocumentValidationEngine
 
 ```csharp
-public ValidationResult ValidateInvoice(Invoice invoice)
-public ValidationResult ValidateSummary(Summary summary)
-public ValidationResult ValidateVoided(Voided voided)
+ValidateInvoice(Invoice) → ValidationResult
+ValidateCreditNote(CreditNote) → ValidationResult
+ValidateDebitNote(DebitNote) → ValidationResult
+ValidateDespatch(Despatch) → ValidationResult
+ValidatePerception(Perception) → ValidationResult
+ValidateRetention(Retention) → ValidationResult
+ValidateSummary(Summary) → ValidationResult
+ValidateVoided(Voided) → ValidationResult
+```
+
+### FieldValidators (deep validation)
+
+```csharp
+ValidateInvoiceDeep(Invoice) → List<ValidationError>
+ValidateDespatchDeep(Despatch) → List<ValidationError>
+ValidatePerceptionDeep(Perception) → List<ValidationError>
+ValidateRetentionDeep(Retention) → List<ValidationError>
+ValidateSummaryDeep(Summary) → List<ValidationError>
+ValidateClient(Client?, prefix) → List<ValidationError>
+ValidateCompany(Company?, prefix) → List<ValidationError>
+ValidateAddress(Address?, prefix) → List<ValidationError>
+ValidateSaleDetail(SaleDetail?, lineNumber, prefix) → List<ValidationError>
+```
+
+### ConstraintLoaders (33 loaders)
+
+```csharp
+LoadInvoice, LoadCreditNote, LoadDebitNote, LoadDespatch, LoadPerception,
+LoadRetention, LoadSummary, LoadVoided, LoadCompany, LoadClient, LoadAddress,
+LoadSaleDetail, LoadDespatchDetail, LoadDirection, LoadTransportist,
+LoadPerceptionDetail, LoadRetentionDetail, LoadSummaryDetail, LoadVoidedDetail,
+LoadCuota, LoadDetraction, LoadDocument, LoadLegend, LoadPrepayment,
+LoadPayment, LoadSalePerception, LoadSummaryPerception,
+LoadFormaPagoContado, LoadFormaPagoCredito, LoadCharge
 ```
 
 ### ValidationResult
 
 ```csharp
-public sealed record ValidationResult(bool IsValid, IReadOnlyList<ValidationError> Errors)
-public sealed record ValidationError(string Code, string Path, string Message, string Severity = "Error")
+record ValidationResult(bool IsValid, IReadOnlyList<ValidationError> Errors)
+record ValidationError(string Code, string Path, string Message, string Severity = "Error")
 ```

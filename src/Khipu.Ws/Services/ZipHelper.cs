@@ -1,5 +1,6 @@
 namespace Khipu.Ws.Helpers;
 using System.IO.Compression;
+using System.Xml.Linq;
 
 public static class ZipHelper
 {
@@ -45,7 +46,15 @@ public static class ZipHelper
 
         var entry = xmlEntries[0];
         using var reader = new StreamReader(entry.Open());
+        var xml = reader.ReadToEnd();
 
-        return reader.ReadToEnd();
+        // Validate XML well-formedness
+        try { XDocument.Parse(xml); }
+        catch (System.Xml.XmlException ex)
+        {
+            throw new InvalidDataException($"ZIP contains invalid XML: {ex.Message}", ex);
+        }
+
+        return xml;
     }
 }

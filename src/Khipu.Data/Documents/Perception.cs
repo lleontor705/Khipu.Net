@@ -1,5 +1,6 @@
 namespace Khipu.Data.Documents;
 
+using Khipu.Data.Common;
 using Khipu.Data.Entities;
 using Khipu.Data.Enums;
 
@@ -18,6 +19,12 @@ public class Perception
     public decimal MtoPercepcion { get; set; }
     public decimal MtoTotal { get; set; }
     public decimal MtoTotalCobrar { get; set; }
+    /// <summary>Código de régimen de percepción (Catálogo 22 SUNAT)</summary>
+    public string? Regimen { get; set; }
+    /// <summary>Tasa de percepción (ej: 2.00 para 2%)</summary>
+    public decimal? Tasa { get; set; }
+    /// <summary>Observaciones</summary>
+    public string? Observacion { get; set; }
 }
 
 /// <summary>
@@ -36,4 +43,8 @@ public class PerceptionDetail
     public decimal Porcentaje { get; set; }
     public decimal MtoBase { get; set; }
     public decimal Mto { get; set; }
+    /// <summary>Fecha de percepción</summary>
+    public DateTime? FechaPercepcion { get; set; }
+    /// <summary>Tipo de cambio (si moneda diferente a PEN)</summary>
+    public Exchange? TipoCambio { get; set; }
 }

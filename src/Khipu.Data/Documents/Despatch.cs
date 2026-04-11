@@ -26,4 +26,16 @@ public class Despatch
     public Transportist? Transportista { get; set; }
     public Vehicle? Vehiculo { get; set; }
     public List<Driver>? Conductores { get; set; }
+    /// <summary>Proveedor tercero (Greenter: tercero)</summary>
+    public Client? Tercero { get; set; }
+    /// <summary>Comprador (Greenter: comprador)</summary>
+    public Client? Comprador { get; set; }
+    /// <summary>Documentos adicionales relacionados (Greenter: addDocs)</summary>
+    public List<AdditionalDoc>? DocumentosAdicionales { get; set; }
+    /// <summary>Documento relacionado (Greenter: relDoc - deprecated)</summary>
+    public Document? RelDoc { get; set; }
+    /// <summary>Observaciones del despacho</summary>
+    public string? Observacion { get; set; }
+    /// <summary>Versión UBL (default 2.0 para backwards compat)</summary>
+    public string? Version { get; set; }
 }

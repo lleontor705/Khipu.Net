@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" fill="none">
+  <!-- Background -->
+  <rect width="400" height="120" rx="12" fill="#1a1a2e"/>
+
+  <!-- Khipu knot symbol -->
+  <g transform="translate(20, 15)">
+    <!-- Main cord -->
+    <path d="M25 45 C25 20, 55 20, 55 45 C55 70, 25 70, 25 45Z" stroke="#e94560" stroke-width="3" fill="none"/>
+    <path d="M40 10 L40 90" stroke="#e94560" stroke-width="2.5"/>
+    <!-- Hanging cords (quipu strings) -->
+    <line x1="30" y1="55" x2="22" y2="85" stroke="#0f3460" stroke-width="2"/>
+    <line x1="35" y1="58" x2="30" y2="88" stroke="#0f3460" stroke-width="2"/>
+    <line x1="45" y1="58" x2="50" y2="88" stroke="#0f3460" stroke-width="2"/>
+    <line x1="50" y1="55" x2="58" y2="85" stroke="#0f3460" stroke-width="2"/>
+    <!-- Knots -->
+    <circle cx="25" cy="72" r="3" fill="#e94560"/>
+    <circle cx="32" cy="78" r="2.5" fill="#e94560"/>
+    <circle cx="48" cy="76" r="2.5" fill="#e94560"/>
+    <circle cx="55" cy="70" r="3" fill="#e94560"/>
+    <!-- Top knot -->
+    <circle cx="40" cy="10" r="4" fill="#e94560"/>
+  </g>
+
+  <!-- Text: Khipu -->
+  <text x="95" y="62" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="700" fill="#ffffff" letter-spacing="-1">Khipu</text>
+  <text x="237" y="62" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="300" fill="#e94560" letter-spacing="-1">.Net</text>
+
+  <!-- Tagline -->
+  <text x="95" y="85" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#8888aa" letter-spacing="0.5">SUNAT Electronic Invoicing for .NET</text>
+
+  <!-- Version badge -->
+  <rect x="95" y="94" width="50" height="18" rx="9" fill="#e94560" opacity="0.15"/>
+  <text x="120" y="106" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#e94560" text-anchor="middle" font-weight="600">v0.1.0</text>
+
+  <!-- .NET badge -->
+  <rect x="152" y="94" width="55" height="18" rx="9" fill="#512bd4" opacity="0.2"/>
+  <text x="179" y="106" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#a78bfa" text-anchor="middle" font-weight="600">.NET 10</text>
+
+  <!-- Peru flag tiny -->
+  <rect x="355" y="48" width="8" height="20" rx="1" fill="#D91023"/>
+  <rect x="363" y="48" width="8" height="20" rx="0" fill="#FFFFFF"/>
+  <rect x="371" y="48" width="8" height="20" rx="1" fill="#D91023"/>
+</svg>

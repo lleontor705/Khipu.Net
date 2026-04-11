@@ -189,7 +189,7 @@ public class InvoiceBuilder : IInvoiceBuilder
         }
 
         // Leyenda de detracción si aplica
-        if (_invoice.Detraccion != null && _invoice.Detraccion.Mount > 0)
+        if (_invoice.Detraccion != null && _invoice.Detraccion.Monto > 0)
         {
             _invoice.Leyendas.Add(new Legend
             {

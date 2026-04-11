@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0;net9.0;net10.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
-    <Version>0.1.0-alpha</Version>
+    <Version>0.1.0</Version>
     <Authors>Luis Leon</Authors>
     <Company>Khipu.Net</Company>
-    <Description>Libreria .NET Core 10 para Facturacion Electronica SUNAT Peru. 100% compatible con Greenter PHP. Incluye modelos, XML UBL 2.1, firma digital, cliente SOAP y validacion.</Description>
+    <Description>Facturacion Electronica SUNAT Peru para .NET. 100% compatible con Greenter PHP. 9 tipos de documento, XML UBL 2.1, firma digital, SOAP + GRE REST API, validacion, reportes HTML/PDF, QR.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/lleontor705/Khipu.Net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/lleontor705/Khipu.Net.git</RepositoryUrl>

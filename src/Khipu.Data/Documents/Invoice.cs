@@ -118,4 +118,20 @@ public class EmbededDespatch
     public Address? Partida { get; set; }
     public string? CodTraslado { get; set; }
     public string? DesTraslado { get; set; }
+    /// <summary>Transportista (Greenter: transportista)</summary>
+    public Client? Transportista { get; set; }
+    /// <summary>Número de licencia del conductor</summary>
+    public string? NroLicencia { get; set; }
+    /// <summary>Placa del vehículo de transporte</summary>
+    public string? TranspPlaca { get; set; }
+    /// <summary>Código de autorización de transporte</summary>
+    public string? TranspCodeAuth { get; set; }
+    /// <summary>Marca del vehículo</summary>
+    public string? TranspMarca { get; set; }
+    /// <summary>Modalidad de traslado (Catálogo 18)</summary>
+    public string? ModTraslado { get; set; }
+    /// <summary>Peso bruto total</summary>
+    public decimal? PesoBruto { get; set; }
+    /// <summary>Unidad de peso bruto (ej: KGM)</summary>
+    public string? UndPesoBruto { get; set; }
 }

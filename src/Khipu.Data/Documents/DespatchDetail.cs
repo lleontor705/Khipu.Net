@@ -13,4 +13,6 @@ public class DespatchDetail
     public string Unidad { get; set; } = "NIU";
     public decimal Cantidad { get; set; }
     public string? CodProdSunat { get; set; }
+    /// <summary>Atributos adicionales del ítem (Greenter: atributos)</summary>
+    public List<DetailAttribute>? Atributos { get; set; }
 }

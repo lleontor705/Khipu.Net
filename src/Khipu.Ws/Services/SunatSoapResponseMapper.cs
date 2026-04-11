@@ -9,7 +9,7 @@ public static class SunatSoapResponseMapper
 {
     public static SoapClassification Classify(SunatResponse response)
     {
-        ArgumentNullException.ThrowIfNull(response);
+        Internal.Guard.NotNull(response);
 
         if (response.Success && response.CdrZip is { Length: > 0 } && string.IsNullOrWhiteSpace(response.Ticket))
         {
@@ -31,7 +31,7 @@ public static class SunatSoapResponseMapper
 
     public static SoapClassification Classify(TicketResponse response)
     {
-        ArgumentNullException.ThrowIfNull(response);
+        Internal.Guard.NotNull(response);
 
         if (response.Success && string.Equals(response.StatusCode, "98", StringComparison.Ordinal))
         {
@@ -48,7 +48,7 @@ public static class SunatSoapResponseMapper
 
     public static SoapClassification Classify(CdrResponse response)
     {
-        ArgumentNullException.ThrowIfNull(response);
+        Internal.Guard.NotNull(response);
 
         if (!response.Success && string.Equals(response.ErrorCode, "CDR_PARSE_ERROR", StringComparison.Ordinal))
         {

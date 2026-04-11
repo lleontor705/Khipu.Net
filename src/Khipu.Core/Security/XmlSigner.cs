@@ -55,8 +55,12 @@ public class XmlSigner
             if (!File.Exists(pfxPath))
                 throw new FileNotFoundException($"No se encontró el archivo de certificado: {pfxPath}");
             
-            // Cargar certificado
+            // Cargar certificado (multi-target: NET9+ usa X509CertificateLoader, anteriores usan constructor)
+#if NET9_0_OR_GREATER
             var certificate = X509CertificateLoader.LoadPkcs12FromFile(pfxPath, password);
+#else
+            var certificate = new X509Certificate2(pfxPath, password, X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet);
+#endif
             
             if (certificate == null)
                 throw new CertificateLoadException("No se pudo cargar el certificado");

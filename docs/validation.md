@@ -23,9 +23,14 @@ if (!result.IsValid)
 ### Supported document types
 
 ```csharp
-var result = engine.ValidateInvoice(invoice);
-var result = engine.ValidateSummary(summary);
-var result = engine.ValidateVoided(voided);
+engine.ValidateInvoice(invoice);
+engine.ValidateCreditNote(creditNote);
+engine.ValidateDebitNote(debitNote);
+engine.ValidateDespatch(despatch);
+engine.ValidatePerception(perception);
+engine.ValidateRetention(retention);
+engine.ValidateSummary(summary);
+engine.ValidateVoided(voided);
 ```
 
 ### Error codes
@@ -63,4 +68,51 @@ bool valid = DocumentValidator.ValidateSerie("B001", "03"); // Boleta: B prefix
 
 // Correlativo validation (1-99999999)
 bool valid = DocumentValidator.ValidateCorrelativo(1);
+```
+
+## Deep field validation
+
+Validates every field with length, format, and business rules:
+
+```csharp
+using Khipu.Validator.Rules;
+
+var errors = FieldValidators.ValidateInvoiceDeep(invoice);
+var errors = FieldValidators.ValidateDespatchDeep(despatch);
+var errors = FieldValidators.ValidatePerceptionDeep(perception);
+var errors = FieldValidators.ValidateRetentionDeep(retention);
+var errors = FieldValidators.ValidateSummaryDeep(summary);
+```
+
+## Constraint loaders (Greenter/Symfony parity)
+
+33 loaders that mirror Greenter's Symfony Validator constraint loaders:
+
+```csharp
+using Khipu.Validator.Rules;
+
+// Document-level
+var e = ConstraintLoaders.LoadInvoice(invoice);
+var e = ConstraintLoaders.LoadCreditNote(creditNote);
+var e = ConstraintLoaders.LoadDespatch(despatch);
+var e = ConstraintLoaders.LoadPerception(perception);
+var e = ConstraintLoaders.LoadRetention(retention);
+var e = ConstraintLoaders.LoadSummary(summary);
+var e = ConstraintLoaders.LoadVoided(voided);
+
+// Entity-level
+var e = ConstraintLoaders.LoadCompany(company);
+var e = ConstraintLoaders.LoadClient(client);
+var e = ConstraintLoaders.LoadAddress(address);
+var e = ConstraintLoaders.LoadSaleDetail(detail);
+var e = ConstraintLoaders.LoadTransportist(transportist);
+
+// Common
+var e = ConstraintLoaders.LoadCuota(cuota);
+var e = ConstraintLoaders.LoadDetraction(detraction);
+var e = ConstraintLoaders.LoadDocument(document);
+var e = ConstraintLoaders.LoadLegend(legend);
+var e = ConstraintLoaders.LoadPrepayment(prepayment);
+var e = ConstraintLoaders.LoadPayment(payment);
+var e = ConstraintLoaders.LoadCharge(charge);
 ```

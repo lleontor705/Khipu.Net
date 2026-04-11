@@ -39,8 +39,14 @@ public class SunatService
     public Task<SunatResponse> SendVoidedAsync(Voided voided)
         => SendSummaryLikeAsync(voided, new VoidedXmlBuilder());
 
+    public Task<SunatResponse> SendDebitNoteAsync(DebitNote note)
+        => SendBillAsync(note, new DebitNoteXmlBuilder());
+
     public Task<SunatResponse> SendReceiptAsync(Receipt receipt)
-        => throw new NotImplementedException("Use SendSummaryAsync para boletas");
+        => SendBillAsync(receipt, new ReceiptXmlBuilder());
+
+    public Task<SunatResponse> SendDespatchAsync(Despatch despatch)
+        => SendBillAsync(despatch, new DespatchXmlBuilder());
 
     public Task<TicketResponse> GetStatusAsync(string ticket)
         => _client.GetStatusAsync(ticket);
@@ -56,9 +62,9 @@ public class SunatService
         int maxStatusChecks = 3,
         TimeSpan? pollInterval = null)
     {
-        ArgumentNullException.ThrowIfNull(summary);
-        ArgumentException.ThrowIfNullOrWhiteSpace(tipoComprobante);
-        ArgumentException.ThrowIfNullOrWhiteSpace(serie);
+        Internal.Guard.NotNull(summary);
+        Internal.Guard.NotNullOrWhiteSpace(tipoComprobante);
+        Internal.Guard.NotNullOrWhiteSpace(serie);
 
         var ruc = summary.Company?.Ruc;
         if (string.IsNullOrWhiteSpace(ruc))

@@ -1,71 +1,113 @@
-# Khipu.Net
+# Khipu.Net - Full Documentation
 
-> Khipu.Net is a .NET 10 library for SUNAT Peru Electronic Invoicing (Facturacion Electronica). It is a 100% compatible reimplementation of the Greenter PHP library. It provides document models, tax calculation, XML UBL 2.1 generation, XMLDSig signing, SOAP client for SUNAT, and document validation.
+> SUNAT Peru Electronic Invoicing for .NET 10. Complete port of Greenter PHP. 409 tests, 100% parity.
 
-Install: `dotnet add package Khipu.Net`
+---
 
-Target framework: net10.0
+# Getting Started
 
-Namespaces: Khipu.Data.Documents, Khipu.Data.Entities, Khipu.Data.Enums, Khipu.Core.Factory, Khipu.Core.Builder, Khipu.Core.Services, Khipu.Core.Security, Khipu.Core.Algorithms, Khipu.Core.Validation, Khipu.Core.Constants, Khipu.Xml.Builder, Khipu.Ws.Services, Khipu.Ws.Models, Khipu.Validator.Engine, Khipu.Validator.Contracts
+## Requisitos
 
-## Getting Started
+- .NET 10.0 SDK
+- Certificado digital X.509 (.pfx) para firma
+- Clave SOL de SUNAT (usuario secundario)
+- Para GRE REST API: Client ID y Client Secret de SUNAT
 
-### Installation
+## Instalacion
 
 ```bash
 dotnet add package Khipu.Net
 ```
 
-### Prerequisites
-
-- .NET 10 SDK
-- A SUNAT digital certificate (.pfx) for signing documents
-- SUNAT credentials (SOL user/password)
-
-### Project setup
+## Configuracion de empresa
 
 ```csharp
-using Khipu.Core.Factory;
-using Khipu.Core.Builder;
-using Khipu.Core.Services;
-using Khipu.Core.Security;
-using Khipu.Core.Algorithms;
-using Khipu.Data.Documents;
 using Khipu.Data.Entities;
-using Khipu.Data.Enums;
-```
 
-### Company configuration
-
-All documents require a company (issuer):
-
-```csharp
 var company = new Company
 {
     Ruc = "20123456789",
     RazonSocial = "MI EMPRESA SAC",
-    NombreComercial = "Mi Empresa",
+    NombreComercial = "MI EMPRESA",
     Address = new Address
     {
         Ubigeo = "150101",
         Departamento = "LIMA",
         Provincia = "LIMA",
         Distrito = "LIMA",
-        Direccion = "AV. REPUBLICA DE CHILE 295"
+        Direccion = "AV. PRINCIPAL 123",
+        CodigoLocal = "0000",
+        CodigoPais = "PE"
     }
 };
 ```
 
-### SUNAT environments
+## Firma digital
 
-| Environment | Use |
-|-------------|-----|
-| `SunatEndpoints.Beta` | Testing (SUNAT sandbox) |
-| `SunatEndpoints.Production` | Production |
+```csharp
+using Khipu.Core.Security;
 
-## Invoices and Receipts
+var signer = XmlSigner.FromPfx("certificado.pfx", "password");
+```
 
-### Creating invoices using Factory (recommended)
+## Servicio SUNAT
+
+### SOAP (legacy)
+
+```csharp
+using Khipu.Core.Services;
+using Khipu.Ws.Constants;
+
+var service = new SunatService("20123456789MODDATOS", "clavesol", SunatEndpoints.Beta, signer);
+```
+
+### GRE REST API (moderno)
+
+```csharp
+using Khipu.Ws.Services;
+
+var client = new GreClient("client-id", "client-secret", "20123456789", "MODDATOS", "clavesol");
+var service = new SunatService(client, signer);
+```
+
+## Primer envio
+
+```csharp
+using Khipu.Core.Builder;
+
+var invoice = new InvoiceBuilder()
+    .WithCompany(company)
+    .WithClient(new Client { TipoDoc = DocumentType.Ruc, NumDoc = "20987654321", RznSocial = "CLIENTE" })
+    .WithSerie("F001")
+    .WithCorrelativo(1)
+    .WithFechaEmision(DateTime.Today)
+    .AddDetail(new SaleDetail
+    {
+        Codigo = "P001", Descripcion = "Producto", Unidad = "NIU", Cantidad = 1,
+        MtoValorUnitario = 100, MtoValorVenta = 100, PrecioVenta = 118,
+        TipoAfectacionIgv = TaxType.Gravado
+    })
+    .Build();
+
+var response = await service.SendInvoiceAsync(invoice);
+```
+
+## Endpoints
+
+| Entorno | Constante | Uso |
+|---------|-----------|-----|
+| Beta SOAP | `SunatEndpoints.Beta` | Pruebas |
+| Produccion SOAP | `SunatEndpoints.Production` | Real |
+| GRE Auth | `SunatEndpoints.GreAuth` | OAuth2 token |
+| GRE CPE | `SunatEndpoints.GreCpe` | Envio REST |
+
+---
+
+# Invoices and Receipts
+
+## Creating invoices
+
+### Using Factory (recommended)
 
 The Factory pattern creates documents with sensible defaults and automatic tax calculation on line items.
 
@@ -105,7 +147,7 @@ invoice.Details.Add(factory.CreateDetail(
 ));
 ```
 
-### Creating invoices using Builder
+### Using Builder
 
 The Builder pattern provides a fluent API and calculates totals automatically on `Build()`.
 
@@ -150,9 +192,9 @@ if (!builder.Validate())
 var invoice = builder.Build();
 ```
 
-### Creating receipts (boletas)
+## Creating receipts (boletas)
 
-Receipts use the same factory but with `CreateReceipt`. The client typically uses DNI. Receipts must be sent via `Summary` (resumen diario), not individually.
+Receipts use the same factory but with `CreateReceipt`. The client typically uses DNI.
 
 ```csharp
 var receipt = factory.CreateReceipt(
@@ -177,7 +219,10 @@ receipt.Details.Add(factory.CreateDetail(
 ));
 ```
 
-### Tax types
+> Receipts must be sent via `Summary` (resumen diario), not individually.
+> See [Summaries](summaries.md).
+
+## Tax types
 
 | TaxType | Code | Description | Tax rate |
 |---------|------|-------------|----------|
@@ -188,7 +233,7 @@ receipt.Details.Add(factory.CreateDetail(
 | `Gratuito` | 21 | Free/gratuitous | 0% (reference IGV) |
 | `Ivap` | 17 | IVAP (rice) | 4% |
 
-### Series format
+## Series format
 
 | Document type | Series prefix | Example |
 |---------------|---------------|---------|
@@ -198,7 +243,7 @@ receipt.Details.Add(factory.CreateDetail(
 | Nota de credito (boleta) | B | B001 |
 | Guia de remision | T or V | T001 |
 
-### Invoice with payment terms
+## Invoice with payment terms
 
 ```csharp
 // Cash payment
@@ -224,7 +269,7 @@ invoice.Cuotas = new List<Cuota>
 };
 ```
 
-### Invoice with detraction
+## Invoice with detraction
 
 ```csharp
 invoice.Detraccion = new Detraction
@@ -237,7 +282,7 @@ invoice.Detraccion = new Detraction
 };
 ```
 
-### Invoice with perception
+## Invoice with perception
 
 ```csharp
 invoice.Perception = new SalePerception
@@ -250,9 +295,11 @@ invoice.Perception = new SalePerception
 };
 ```
 
-## Credit and Debit Notes
+---
 
-### Credit notes
+# Credit and Debit Notes
+
+## Credit notes
 
 Credit notes reference the original document being corrected.
 
@@ -284,7 +331,7 @@ creditNote.Details.Add(factory.CreateDetail(
 ));
 ```
 
-### Credit note reason codes (Catalogo 09)
+### Reason codes (Catalogo 09 - Credit Notes)
 
 | Code | Description |
 |------|-------------|
@@ -298,7 +345,7 @@ creditNote.Details.Add(factory.CreateDetail(
 | 08 | Bonificacion |
 | 09 | Disminucion en el valor |
 
-### Debit notes
+## Debit notes
 
 ```csharp
 var debitNote = factory.CreateDebitNote(
@@ -326,7 +373,7 @@ debitNote.Details.Add(factory.CreateDetail(
 ));
 ```
 
-### Debit note reason codes (Catalogo 10)
+### Reason codes (Catalogo 10 - Debit Notes)
 
 | Code | Description |
 |------|-------------|
@@ -334,7 +381,7 @@ debitNote.Details.Add(factory.CreateDetail(
 | 02 | Aumento en el valor |
 | 03 | Penalidades |
 
-### Sending credit/debit notes to SUNAT
+## Sending to SUNAT
 
 Credit and debit notes are sent individually, like invoices:
 
@@ -342,9 +389,11 @@ Credit and debit notes are sent individually, like invoices:
 var response = await service.SendCreditNoteAsync(creditNote);
 ```
 
-## Summaries and Voided Documents
+---
 
-### Receipt summaries (resumen diario)
+# Summaries and Voided Documents
+
+## Receipt summaries (resumen diario)
 
 Receipts (boletas) must be reported to SUNAT via a daily summary, not sent individually.
 
@@ -410,7 +459,7 @@ var cdr = await service.SendSummaryAndQueryCdrAsync(
 );
 ```
 
-### Voided documents (comunicacion de bajas)
+## Voided documents (comunicacion de bajas)
 
 Use voided documents to cancel invoices, credit notes, or debit notes.
 
@@ -437,13 +486,15 @@ var voided = new Voided
 var response = await service.SendVoidedAsync(voided);
 ```
 
-Voided documents are also processed asynchronously. Use `GetStatusAsync` to check the result.
+> Voided documents are also processed asynchronously. Use `GetStatusAsync` to check the result.
 
-## Tax Calculator
+---
+
+# Tax Calculator
 
 `TaxCalculator` provides static methods for SUNAT-compliant tax calculations. All results follow SUNAT rounding rules (2 decimal places, AwayFromZero).
 
-### IGV calculation
+## IGV calculation
 
 ```csharp
 using Khipu.Core.Algorithms;
@@ -461,7 +512,7 @@ var value = TaxCalculator.CalculateUnitValue(1180, TaxType.Gravado);   // 1000.0
 var value = TaxCalculator.CalculateUnitValue(1000, TaxType.Exonerado); // 1000.00
 ```
 
-### Detractions
+## Detractions
 
 ```csharp
 // Default rate (10%)
@@ -471,7 +522,7 @@ var detraction = TaxCalculator.CalculateDetraction(5000);        // 500.00
 var detraction = TaxCalculator.CalculateDetraction(5000, 0.12m); // 600.00
 ```
 
-### SUNAT rounding
+## SUNAT rounding
 
 ```csharp
 using Khipu.Core.Algorithms;
@@ -480,7 +531,7 @@ var rounded = RoundingPolicy.RoundSunat(100.125m);  // 100.13 (AwayFromZero)
 var rounded = RoundingPolicy.RoundSunat(100.124m);  // 100.12
 ```
 
-### Amount in words
+## Amount in words
 
 ```csharp
 using Khipu.Core.Algorithms;
@@ -492,7 +543,7 @@ var words = AmountInWordsEsPe.Convert(500.00m, Currency.Usd);
 // "SON: QUINIENTOS CON 00/100 DOLARES AMERICANOS"
 ```
 
-### Tax rates (SunatConstants)
+## Tax rates (SunatConstants)
 
 | Constant | Value | Description |
 |----------|-------|-------------|
@@ -503,9 +554,11 @@ var words = AmountInWordsEsPe.Convert(500.00m, Currency.Usd);
 | `TasaDetraccion` | 0.10 | Detraction rate (10%) |
 | `DecimalesSunat` | 2 | Decimal places |
 
-## Signing and Sending Documents
+---
 
-### Digital signature
+# Signing and Sending Documents
+
+## Digital signature
 
 SUNAT requires all electronic documents to be digitally signed using XMLDSig with an X.509 certificate.
 
@@ -540,6 +593,8 @@ if (!signer.IsCertificateValid())
 ```csharp
 string signedXml = signer.Sign(xmlContent);
 ```
+
+## Sending documents to SUNAT
 
 ### SunatService
 
@@ -602,7 +657,61 @@ if (cdr.IsAccepted)
     Console.WriteLine("Document accepted by SUNAT");
 ```
 
-### Using the SOAP client directly
+## GRE REST API (moderno)
+
+SUNAT promueve la API GRE como alternativa moderna al SOAP. Usa OAuth2 con tokens JWT.
+
+```csharp
+using Khipu.Ws.Services;
+
+var greClient = new GreClient(
+    clientId: "tu-client-id",
+    clientSecret: "tu-client-secret",
+    ruc: "20123456789",
+    solUser: "MODDATOS",
+    solPassword: "clavesol"
+);
+
+// Misma interfaz ISunatClient
+var service = new SunatService(greClient, signer);
+var response = await service.SendInvoiceAsync(invoice);
+```
+
+El token OAuth2 se gestiona automaticamente:
+- Se solicita al primer envio
+- Se cachea en memoria con thread safety (SemaphoreSlim)
+- Se renueva 1 minuto antes de expirar
+
+### Consultar estado (GRE)
+
+```csharp
+var status = await greClient.GetStatusAsync("TICKET123");
+if (status.StatusCode == "0" && status.CdrZip != null)
+{
+    var cdr = CdrReader.ParseFromZip(status.CdrZip);
+}
+```
+
+## Parsear CDR
+
+```csharp
+using Khipu.Ws.Reader;
+
+var cdr = CdrReader.ParseFromZip(response.CdrZip);
+// cdr.Id, cdr.Code, cdr.Description, cdr.Notes, cdr.IsAccepted
+```
+
+### Codigos de error SUNAT (1710)
+
+```csharp
+using Khipu.Ws.Constants;
+
+string msg = SunatErrorCodes.GetMessage("2017");
+bool ok    = SunatErrorCodes.IsAccepted(cdr.Code);
+string cat = SunatErrorCodes.GetCategory("0306");
+```
+
+## Using the SOAP client directly
 
 For advanced scenarios, use `SunatSoapClient` directly:
 
@@ -624,7 +733,7 @@ var request = new SunatSendRequest(
 var response = await client.SendBillAsync(request);
 ```
 
-### Document numbering
+## Document numbering
 
 ```csharp
 using Khipu.Core.Services;
@@ -643,9 +752,11 @@ string zipName = numbering.GenerateZipName("20123456789", "01", "F001", 1);
 // "20123456789-01-F001-00000001.zip"
 ```
 
-## Validation
+---
 
-### Document validation engine
+# Validation
+
+## Document validation engine
 
 The validation engine checks documents against SUNAT business rules before sending.
 
@@ -668,12 +779,17 @@ if (!result.IsValid)
 ### Supported document types
 
 ```csharp
-var result = engine.ValidateInvoice(invoice);
-var result = engine.ValidateSummary(summary);
-var result = engine.ValidateVoided(voided);
+engine.ValidateInvoice(invoice);
+engine.ValidateCreditNote(creditNote);
+engine.ValidateDebitNote(debitNote);
+engine.ValidateDespatch(despatch);
+engine.ValidatePerception(perception);
+engine.ValidateRetention(retention);
+engine.ValidateSummary(summary);
+engine.ValidateVoided(voided);
 ```
 
-### Validation error codes
+### Error codes
 
 | Code | Description |
 |------|-------------|
@@ -685,7 +801,7 @@ var result = engine.ValidateVoided(voided);
 | VAL-TOTAL-NEGATIVE | Total amount is negative |
 | VAL-DUPLICATE-REFERENCE | Duplicate document references |
 
-### Individual field validation
+## Individual field validation
 
 Static methods for validating specific fields:
 
@@ -710,9 +826,60 @@ bool valid = DocumentValidator.ValidateSerie("B001", "03"); // Boleta: B prefix
 bool valid = DocumentValidator.ValidateCorrelativo(1);
 ```
 
-## API Reference
+## Deep field validation
 
-### Khipu.Data - Documents
+Validates every field with length, format, and business rules:
+
+```csharp
+using Khipu.Validator.Rules;
+
+var errors = FieldValidators.ValidateInvoiceDeep(invoice);
+var errors = FieldValidators.ValidateDespatchDeep(despatch);
+var errors = FieldValidators.ValidatePerceptionDeep(perception);
+var errors = FieldValidators.ValidateRetentionDeep(retention);
+var errors = FieldValidators.ValidateSummaryDeep(summary);
+```
+
+## Constraint loaders (Greenter/Symfony parity)
+
+33 loaders that mirror Greenter's Symfony Validator constraint loaders:
+
+```csharp
+using Khipu.Validator.Rules;
+
+// Document-level
+var e = ConstraintLoaders.LoadInvoice(invoice);
+var e = ConstraintLoaders.LoadCreditNote(creditNote);
+var e = ConstraintLoaders.LoadDespatch(despatch);
+var e = ConstraintLoaders.LoadPerception(perception);
+var e = ConstraintLoaders.LoadRetention(retention);
+var e = ConstraintLoaders.LoadSummary(summary);
+var e = ConstraintLoaders.LoadVoided(voided);
+
+// Entity-level
+var e = ConstraintLoaders.LoadCompany(company);
+var e = ConstraintLoaders.LoadClient(client);
+var e = ConstraintLoaders.LoadAddress(address);
+var e = ConstraintLoaders.LoadSaleDetail(detail);
+var e = ConstraintLoaders.LoadTransportist(transportist);
+
+// Common
+var e = ConstraintLoaders.LoadCuota(cuota);
+var e = ConstraintLoaders.LoadDetraction(detraction);
+var e = ConstraintLoaders.LoadDocument(document);
+var e = ConstraintLoaders.LoadLegend(legend);
+var e = ConstraintLoaders.LoadPrepayment(prepayment);
+var e = ConstraintLoaders.LoadPayment(payment);
+var e = ConstraintLoaders.LoadCharge(charge);
+```
+
+---
+
+# API Reference
+
+## Khipu.Data
+
+### Documents
 
 | Class | Description | Base |
 |-------|-------------|------|
@@ -721,27 +888,42 @@ bool valid = DocumentValidator.ValidateCorrelativo(1);
 | `CreditNote` | Nota de credito | BaseSale |
 | `DebitNote` | Nota de debito | BaseSale |
 | `Despatch` | Guia de remision | - |
-| `Summary` | Resumen diario de boletas | - |
+| `Summary` | Resumen diario | - |
 | `Voided` | Comunicacion de bajas | - |
+| `Reversion` | Reversion de documentos | Voided |
 | `Retention` | Comprobante de retencion | - |
 | `Perception` | Comprobante de percepcion | - |
 
-### Khipu.Data - Entities
+### Entities
 
 | Class | Key properties |
 |-------|---------------|
-| `Company` | Ruc, RazonSocial, NombreComercial, Address |
-| `Client` | TipoDoc, NumDoc, RznSocial, Address |
-| `Address` | Ubigeo, Departamento, Provincia, Distrito, Direccion |
-| `SaleDetail` | Codigo, Descripcion, Unidad, Cantidad, MtoValorUnitario, TipoAfectacionIgv |
+| `Company` | Ruc, RazonSocial, NombreComercial, Address, Email, Telephone |
+| `Client` | TipoDoc, NumDoc, RznSocial, Address, Email, Telephone |
+| `Address` | Ubigeo, Departamento, Provincia, Distrito, Direccion, CodigoLocal, CodigoPais |
+| `SaleDetail` | Codigo, Descripcion, Unidad, Cantidad, MtoValorUnitario, TipoAfectacionIgv, Atributos |
+| `DespatchDetail` | Codigo, Descripcion, Unidad, Cantidad, CodProdSunat, Atributos |
+
+### Common
+
+| Class | Key properties |
+|-------|---------------|
 | `Legend` | Code, Value |
 | `Charge` | CodTipo, Factor, Monto, MontoBase |
 | `Cuota` | Moneda, Monto, FechaPago |
-| `Detraction` | Mount, CtaBanco, CodBienDetraccion, Porcentaje |
-| `PaymentTerms` | Tipo (Contado/Credito), Moneda, Monto |
+| `Detraction` | Monto, CtaBanco, CodBienDetraccion, Porcentaje, ValueRef |
+| `PaymentTerms` | Tipo, Moneda, Monto |
 | `Prepayment` | Nro, TipoDoc, NroDoc, Total |
+| `Document` | TipoDoc, NroDoc |
+| `AdditionalDoc` | TipoDesc, Tipo, Nro, Emisor |
+| `DetailAttribute` | Code, Name, Value, FecInicio, FecFin, Duracion |
+| `Exchange` | MonedaRef, MonedaObj, Factor, Fecha |
+| `Transportist` | TipoDoc, NumDoc, RznSocial, Placa |
+| `Vehicle` | Placa, NroCirculacion, NroPlacaRemolque |
+| `Driver` | TipoDoc, NumDoc, Nombres, Apellidos, Licencia |
+| `Payment` | FormaPago, Monto, NumOperacion |
 
-### Khipu.Data - Enums
+### Enums
 
 | Enum | Values |
 |------|--------|
@@ -750,162 +932,251 @@ bool valid = DocumentValidator.ValidateCorrelativo(1);
 | `Currency` | Pen(1), Usd(2), Eur(3) |
 | `TaxType` | Gravado(10), Exonerado(20), Inafecto(30), Exportacion(40), Gratuito(21), Ivap(17) |
 
-### Khipu.Core - InvoiceFactory
+### Generators
 
 ```csharp
-public InvoiceFactory(Company company)
-
-public Invoice CreateInvoice(Client client, string serie, int correlativo, DateTime fechaEmision)
-public Receipt CreateReceipt(Client client, string serie, int correlativo, DateTime fechaEmision)
-public CreditNote CreateCreditNote(Client client, string serie, int correlativo,
-    DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
-public DebitNote CreateDebitNote(Client client, string serie, int correlativo,
-    DateTime fechaEmision, string docAfectado, string codMotivo, string desMotivo)
-public SaleDetail CreateDetail(string codigo, string descripcion, string unidad,
-    decimal cantidad, decimal valorUnitario, TaxType tipoAfectacion = TaxType.Gravado)
+DocumentGenerator.CreateInvoice(correlativo)
+DocumentGenerator.CreateReceipt(correlativo)
+DocumentGenerator.CreateCreditNote(correlativo)
+DocumentGenerator.CreateDebitNote(correlativo)
+DocumentGenerator.CreateDespatch(correlativo)
+DocumentGenerator.CreatePerception(correlativo)
+DocumentGenerator.CreateRetention(correlativo)
+DocumentGenerator.CreateSummary()
+DocumentGenerator.CreateVoided()
 ```
 
-### Khipu.Core - InvoiceBuilder
+---
+
+## Khipu.Core
+
+### InvoiceBuilder
 
 ```csharp
-public IInvoiceBuilder WithCompany(Company company)
-public IInvoiceBuilder WithClient(Client client)
-public IInvoiceBuilder WithSerie(string serie)
-public IInvoiceBuilder WithCorrelativo(int correlativo)
-public IInvoiceBuilder WithFechaEmision(DateTime fecha)
-public IInvoiceBuilder AddDetail(SaleDetail detail)
-public Invoice Build()
-public bool Validate()
-public List<string> GetErrors()
+WithCompany(Company) → WithClient(Client) → WithSerie(string) → WithCorrelativo(int)
+→ WithFechaEmision(DateTime) → AddDetail(SaleDetail) → Build() → Invoice
 ```
 
-### Khipu.Core - TaxCalculator
+### InvoiceFactory
 
 ```csharp
-public static decimal CalculateIgv(decimal taxableAmount)
-public static decimal CalculateSalePrice(decimal baseAmount, TaxType taxType)
-public static decimal CalculateUnitValue(decimal salePrice, TaxType taxType)
-public static decimal CalculateDetraction(decimal baseAmount, decimal rate = 0.10m)
+new InvoiceFactory(Company)
+  .CreateInvoice(Client, serie, correlativo, fecha)
+  .CreateReceipt(Client, serie, correlativo, fecha)
+  .CreateCreditNote(Client, serie, correlativo, fecha, docAfectado, codMotivo, desMotivo)
+  .CreateDebitNote(Client, serie, correlativo, fecha, docAfectado, codMotivo, desMotivo)
+  .CreateDetail(codigo, descripcion, unidad, cantidad, valorUnitario, tipoAfectacion)
 ```
 
-### Khipu.Core - RoundingPolicy
+### TaxCalculator
 
 ```csharp
-public static decimal RoundSunat(decimal value)
-    // 2 decimal places, MidpointRounding.AwayFromZero
+TaxCalculator.CalculateIgv(decimal taxableAmount) → decimal
+TaxCalculator.CalculateSalePrice(decimal base, TaxType type) → decimal
+TaxCalculator.CalculateUnitValue(decimal salePrice, TaxType type) → decimal
+TaxCalculator.CalculateDetraction(decimal base, decimal rate = 0.10m) → decimal
 ```
 
-### Khipu.Core - AmountInWordsEsPe
+### AmountInWordsEsPe
 
 ```csharp
-public static string Convert(decimal amount, Currency currency)
-    // Returns: "SON: [words] CON [cents]/100 [currency]"
+AmountInWordsEsPe.Convert(1180.50m, Currency.Pen)
+// → "SON: MIL CIENTO OCHENTA CON 50/100 SOLES"
 ```
 
-### Khipu.Core - XmlSigner
+### XmlSigner
 
 ```csharp
-public XmlSigner(X509Certificate2 certificate)
-public static XmlSigner FromPfx(string pfxPath, string password)
-public string Sign(string xmlContent)
-public bool IsCertificateValid()
-public CertificateInfo GetCertificateInfo()
+XmlSigner.FromPfx(string pfxPath, string password) → XmlSigner
+signer.Sign(string xmlContent) → string
+signer.IsCertificateValid() → bool
+signer.GetCertificateInfo() → CertificateInfo
 ```
 
-### Khipu.Core - SunatService
+### SunatService
 
 ```csharp
-public SunatService(string username, string password, string endpoint, XmlSigner? signer = null)
+new SunatService(string user, string pass, string endpoint, XmlSigner? signer)
+new SunatService(ISunatClient client, XmlSigner? signer)
 
-public Task<SunatResponse> SendInvoiceAsync(Invoice invoice)
-public Task<SunatResponse> SendCreditNoteAsync(CreditNote note)
-public Task<SunatResponse> SendSummaryAsync(Summary summary)
-public Task<SunatResponse> SendVoidedAsync(Voided voided)
-public Task<TicketResponse> GetStatusAsync(string ticket)
-public Task<CdrResponse> GetCdrAsync(string ruc, string tipoComprobante, string serie, int correlativo)
-public Task<CdrResponse> SendSummaryAndQueryCdrAsync(Summary summary, string tipoComprobante,
-    string serie, int correlativo, int maxStatusChecks = 3, TimeSpan? pollInterval = null)
+SendInvoiceAsync(Invoice) → Task<SunatResponse>
+SendReceiptAsync(Receipt) → Task<SunatResponse>
+SendCreditNoteAsync(CreditNote) → Task<SunatResponse>
+SendDebitNoteAsync(DebitNote) → Task<SunatResponse>
+SendDespatchAsync(Despatch) → Task<SunatResponse>
+SendSummaryAsync(Summary) → Task<SunatResponse>
+SendVoidedAsync(Voided) → Task<SunatResponse>
+GetStatusAsync(string ticket) → Task<TicketResponse>
+GetCdrAsync(ruc, tipo, serie, corr) → Task<CdrResponse>
+SendSummaryAndQueryCdrAsync(...) → Task<CdrResponse>
 ```
 
-### Khipu.Core - DocumentNumberService
+### HtmlReport
 
 ```csharp
-public DocumentNumberService(int initialCorrelativo = 1)
-
-public int GetNextCorrelativo()
-public string GenerateDocumentNumber(string serie, int correlativo)
-public string GenerateFileName(string ruc, string tipoDoc, string serie, int correlativo)
-public string GenerateZipName(string ruc, string tipoDoc, string serie, int correlativo)
+RenderInvoice(Invoice, ReportParameters?) → string
+RenderReceipt(Receipt, ReportParameters?) → string
+RenderCreditNote(CreditNote, ReportParameters?) → string
+RenderDebitNote(DebitNote, ReportParameters?) → string
+RenderDespatch(Despatch, ReportParameters?) → string
+RenderPerception(Perception, ReportParameters?) → string
+RenderRetention(Retention, ReportParameters?) → string
+RenderSummary(Summary, ReportParameters?) → string
+RenderVoided(Voided, ReportParameters?) → string
 ```
 
-### Khipu.Core - DocumentValidator
+### QrGenerator
 
 ```csharp
-public static bool ValidateRuc(string ruc)
-public static bool ValidateDni(string dni)
-public static bool ValidateDocument(string tipoDoc, string numDoc)
-public static bool ValidateSerie(string serie, string tipoDoc)
-public static bool ValidateCorrelativo(int correlativo)
+QrGenerator.GenerateQrSvg(string content) → string
+QrGenerator.GenerateQrBase64(string content) → string (data URI)
+QrGenerator.GenerateQrPng(string content) → byte[]
+QrGenerator.GenerateInvoiceQrSvg(Invoice, hash?) → string
+QrGenerator.GenerateInvoiceQrBase64(Invoice, hash?) → string
+QrGenerator.GenerateDespatchQrSvg(Despatch) → string
+QrGenerator.GetInvoiceQrContent(Invoice, hash?) → string
+QrGenerator.GetReceiptQrContent(Receipt, hash?) → string
+QrGenerator.GetDespatchQrContent(Despatch) → string
 ```
 
-### Khipu.Xml - XML Builders
-
-All builders implement `IXmlBuilder<T>`:
+### PdfExporter
 
 ```csharp
-public interface IXmlBuilder<T>
-{
-    string Build(T document);        // Returns UBL 2.1 XML
-    string GetFileName(T document);  // Returns filename
-}
+PdfExporter.HtmlToPdfAsync(string html, PdfOptions?) → Task<byte[]>
+PdfExporter.SavePdfAsync(string html, string path, PdfOptions?) → Task
 ```
 
-| Builder | Document type | XML root element |
-|---------|--------------|------------------|
-| `InvoiceXmlBuilder` | Invoice, Receipt | `Invoice` |
-| `CreditNoteXmlBuilder` | CreditNote | `CreditNote` |
-| `DebitNoteXmlBuilder` | DebitNote | `DebitNote` |
-| `ReceiptXmlBuilder` | Receipt | `Invoice` |
-| `SummaryXmlBuilder` | Summary | `SummaryDocuments` |
-| `VoidedXmlBuilder` | Voided | `VoidedDocuments` |
+---
 
-### Khipu.Ws - SunatSoapClient
+## Khipu.Xml
+
+### Builders (IXmlBuilder&lt;T&gt;)
+
+| Builder | Type | Root element |
+|---------|------|-------------|
+| `InvoiceXmlBuilder` | Invoice | Invoice |
+| `ReceiptXmlBuilder` | Receipt | Invoice |
+| `CreditNoteXmlBuilder` | CreditNote | CreditNote |
+| `DebitNoteXmlBuilder` | DebitNote | DebitNote |
+| `DespatchXmlBuilder` | Despatch | DespatchAdvice |
+| `PerceptionXmlBuilder` | Perception | Perception |
+| `RetentionXmlBuilder` | Retention | Retention |
+| `SummaryXmlBuilder` | Summary | SummaryDocuments |
+| `VoidedXmlBuilder` | Voided | VoidedDocuments |
+
+### Parser
 
 ```csharp
-public SunatSoapClient(string username, string password, string endpoint, HttpClient? httpClient = null)
-
-public Task<SunatResponse> SendBillAsync(SunatSendRequest request, CancellationToken ct = default)
-public Task<SunatResponse> SendSummaryAsync(SunatSendRequest request, CancellationToken ct = default)
-public Task<TicketResponse> GetStatusAsync(string ticket, CancellationToken ct = default)
-public Task<CdrResponse> GetCdrAsync(CdrQuery query, CancellationToken ct = default)
+XmlDocumentParser.ParseInvoice(string xml) → Invoice?
+XmlDocumentParser.ParseCreditNote(string xml) → CreditNote?
+XmlDocumentParser.ParseDebitNote(string xml) → DebitNote?
+XmlDocumentParser.ParseDespatch(string xml) → Despatch?
+XmlDocumentParser.ParsePerception(string xml) → Perception?
+XmlDocumentParser.ParseRetention(string xml) → Retention?
+XmlDocumentParser.ParseSummary(string xml) → Summary?
+XmlDocumentParser.ParseVoided(string xml) → Voided?
 ```
 
-### Khipu.Ws - Models
+---
+
+## Khipu.Ws
+
+### ISunatClient (interface)
 
 ```csharp
-public sealed record SunatSendRequest(byte[] ZipContent, string FileNameWithoutExtension,
-    string? Ruc = null, string? TipoDocumento = null)
-
-public sealed record CdrQuery(string Ruc, string TipoComprobante, string Serie, int Correlativo)
+SendBillAsync(SunatSendRequest, CancellationToken) → Task<SunatResponse>
+SendSummaryAsync(SunatSendRequest, CancellationToken) → Task<SunatResponse>
+GetStatusAsync(string ticket, CancellationToken) → Task<TicketResponse>
+GetCdrAsync(CdrQuery, CancellationToken) → Task<CdrResponse>
 ```
 
-| Response | Key properties |
-|----------|---------------|
-| `SunatResponse` | Success, Ticket, CdrZip, ErrorCode, ErrorMessage |
+Implementations: `SunatSoapClient` (SOAP), `GreClient` (REST).
+
+### GreClient
+
+```csharp
+new GreClient(clientId, clientSecret, ruc, solUser, solPassword,
+    authEndpoint?, cpeEndpoint?, httpClient?)
+```
+
+### CdrReader
+
+```csharp
+CdrReader.Parse(string? xml) → CdrDetail?
+CdrReader.ParseFromZip(byte[]? zipData) → CdrDetail?
+```
+
+### SunatErrorCodes
+
+```csharp
+SunatErrorCodes.GetMessage(string? code) → string?
+SunatErrorCodes.GetMessageOrDefault(string? code, string default) → string
+SunatErrorCodes.IsAccepted(string? code) → bool    // 0 or >= 4000
+SunatErrorCodes.IsObservation(string? code) → bool  // >= 4000
+SunatErrorCodes.IsRejection(string? code) → bool    // 1-3999
+SunatErrorCodes.GetCategory(string? code) → string
+SunatErrorCodes.GetAll() → IReadOnlyDictionary<string, string>
+SunatErrorCodes.Count → int  // 1710
+```
+
+### Response models
+
+| Class | Properties |
+|-------|-----------|
+| `SunatResponse` | Success, Ticket, CdrZip, ErrorCode, ErrorMessage, StatusCode |
 | `TicketResponse` | Success, Ticket, CdrZip, StatusCode, ErrorMessage |
 | `CdrResponse` | Success, CdrZip, CdrXml, IsAccepted, ErrorCode, ErrorMessage |
+| `CdrDetail` | Id, Code, Description, Notes, Reference, IsAccepted |
 
-### Khipu.Validator - DocumentValidationEngine
+---
 
-```csharp
-public ValidationResult ValidateInvoice(Invoice invoice)
-public ValidationResult ValidateSummary(Summary summary)
-public ValidationResult ValidateVoided(Voided voided)
-```
+## Khipu.Validator
 
-### Khipu.Validator - ValidationResult
+### DocumentValidationEngine
 
 ```csharp
-public sealed record ValidationResult(bool IsValid, IReadOnlyList<ValidationError> Errors)
-public sealed record ValidationError(string Code, string Path, string Message, string Severity = "Error")
+ValidateInvoice(Invoice) → ValidationResult
+ValidateCreditNote(CreditNote) → ValidationResult
+ValidateDebitNote(DebitNote) → ValidationResult
+ValidateDespatch(Despatch) → ValidationResult
+ValidatePerception(Perception) → ValidationResult
+ValidateRetention(Retention) → ValidationResult
+ValidateSummary(Summary) → ValidationResult
+ValidateVoided(Voided) → ValidationResult
 ```
+
+### FieldValidators (deep validation)
+
+```csharp
+ValidateInvoiceDeep(Invoice) → List<ValidationError>
+ValidateDespatchDeep(Despatch) → List<ValidationError>
+ValidatePerceptionDeep(Perception) → List<ValidationError>
+ValidateRetentionDeep(Retention) → List<ValidationError>
+ValidateSummaryDeep(Summary) → List<ValidationError>
+ValidateClient(Client?, prefix) → List<ValidationError>
+ValidateCompany(Company?, prefix) → List<ValidationError>
+ValidateAddress(Address?, prefix) → List<ValidationError>
+ValidateSaleDetail(SaleDetail?, lineNumber, prefix) → List<ValidationError>
+```
+
+### ConstraintLoaders (33 loaders)
+
+```csharp
+LoadInvoice, LoadCreditNote, LoadDebitNote, LoadDespatch, LoadPerception,
+LoadRetention, LoadSummary, LoadVoided, LoadCompany, LoadClient, LoadAddress,
+LoadSaleDetail, LoadDespatchDetail, LoadDirection, LoadTransportist,
+LoadPerceptionDetail, LoadRetentionDetail, LoadSummaryDetail, LoadVoidedDetail,
+LoadCuota, LoadDetraction, LoadDocument, LoadLegend, LoadPrepayment,
+LoadPayment, LoadSalePerception, LoadSummaryPerception,
+LoadFormaPagoContado, LoadFormaPagoCredito, LoadCharge
+```
+
+### ValidationResult
+
+```csharp
+record ValidationResult(bool IsValid, IReadOnlyList<ValidationError> Errors)
+record ValidationError(string Code, string Path, string Message, string Severity = "Error")
+```
+
+---
+

@@ -148,4 +148,7 @@ public class SaleDetail
 
     // --- Leyendas ---
     public List<Legend>? Leyendas { get; set; }
+
+    /// <summary>Atributos adicionales del ítem (Greenter: atributos)</summary>
+    public List<DetailAttribute>? Atributos { get; set; }
 }

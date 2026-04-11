@@ -41,6 +41,107 @@ public static class RuleCatalog
         return ToCanonicalOrder(errors);
     }
 
+    public static IReadOnlyList<ValidationError> ValidateCreditNote(CreditNote note)
+    {
+        var errors = new List<ValidationError>();
+
+        ValidateCompany(errors, note.Company, "creditNote");
+        if (string.IsNullOrWhiteSpace(note.Serie))
+            errors.Add(new ValidationError("VAL-SERIE-REQUIRED", "creditNote.serie", "Serie es obligatoria"));
+        if (note.Correlativo <= 0)
+            errors.Add(new ValidationError("VAL-CORR-INVALID", "creditNote.correlativo", "Correlativo debe ser mayor a cero"));
+        if (note.Details.Count == 0)
+            errors.Add(new ValidationError("VAL-DETAILS-EMPTY", "creditNote.details", "Debe incluir al menos un detalle"));
+        if (string.IsNullOrWhiteSpace(note.NumDocAfectado))
+            errors.Add(new ValidationError("VAL-DOC-AFECTADO-REQUIRED", "creditNote.numDocAfectado", "Documento afectado es obligatorio"));
+        if (string.IsNullOrWhiteSpace(note.CodMotivo))
+            errors.Add(new ValidationError("VAL-MOTIVO-REQUIRED", "creditNote.codMotivo", "Código de motivo es obligatorio"));
+
+        return ToCanonicalOrder(errors);
+    }
+
+    public static IReadOnlyList<ValidationError> ValidateDebitNote(DebitNote note)
+    {
+        var errors = new List<ValidationError>();
+
+        ValidateCompany(errors, note.Company, "debitNote");
+        if (string.IsNullOrWhiteSpace(note.Serie))
+            errors.Add(new ValidationError("VAL-SERIE-REQUIRED", "debitNote.serie", "Serie es obligatoria"));
+        if (note.Correlativo <= 0)
+            errors.Add(new ValidationError("VAL-CORR-INVALID", "debitNote.correlativo", "Correlativo debe ser mayor a cero"));
+        if (note.Details.Count == 0)
+            errors.Add(new ValidationError("VAL-DETAILS-EMPTY", "debitNote.details", "Debe incluir al menos un detalle"));
+        if (string.IsNullOrWhiteSpace(note.NumDocAfectado))
+            errors.Add(new ValidationError("VAL-DOC-AFECTADO-REQUIRED", "debitNote.numDocAfectado", "Documento afectado es obligatorio"));
+        if (string.IsNullOrWhiteSpace(note.CodMotivo))
+            errors.Add(new ValidationError("VAL-MOTIVO-REQUIRED", "debitNote.codMotivo", "Código de motivo es obligatorio"));
+
+        return ToCanonicalOrder(errors);
+    }
+
+    public static IReadOnlyList<ValidationError> ValidateDespatch(Despatch despatch)
+    {
+        var errors = new List<ValidationError>();
+
+        ValidateCompany(errors, despatch.Company, "despatch");
+        if (string.IsNullOrWhiteSpace(despatch.Serie))
+            errors.Add(new ValidationError("VAL-SERIE-REQUIRED", "despatch.serie", "Serie es obligatoria"));
+        if (despatch.Correlativo <= 0)
+            errors.Add(new ValidationError("VAL-CORR-INVALID", "despatch.correlativo", "Correlativo debe ser mayor a cero"));
+        if (despatch.Details.Count == 0)
+            errors.Add(new ValidationError("VAL-DETAILS-EMPTY", "despatch.details", "Debe incluir al menos un detalle"));
+        if (string.IsNullOrWhiteSpace(despatch.CodMotivoTraslado))
+            errors.Add(new ValidationError("VAL-MOTIVO-TRASLADO-REQUIRED", "despatch.codMotivoTraslado", "Motivo de traslado es obligatorio"));
+        if (string.IsNullOrWhiteSpace(despatch.PuntoPartida?.Ubigeo) && string.IsNullOrWhiteSpace(despatch.PuntoPartida?.Direccion))
+            errors.Add(new ValidationError("VAL-PARTIDA-REQUIRED", "despatch.puntoPartida", "Punto de partida es obligatorio"));
+        if (string.IsNullOrWhiteSpace(despatch.PuntoLlegada?.Ubigeo) && string.IsNullOrWhiteSpace(despatch.PuntoLlegada?.Direccion))
+            errors.Add(new ValidationError("VAL-LLEGADA-REQUIRED", "despatch.puntoLlegada", "Punto de llegada es obligatorio"));
+
+        return ToCanonicalOrder(errors);
+    }
+
+    public static IReadOnlyList<ValidationError> ValidatePerception(Perception perception)
+    {
+        var errors = new List<ValidationError>();
+
+        ValidateCompany(errors, perception.Company, "perception");
+        if (string.IsNullOrWhiteSpace(perception.Serie))
+            errors.Add(new ValidationError("VAL-SERIE-REQUIRED", "perception.serie", "Serie es obligatoria"));
+        if (perception.Correlativo <= 0)
+            errors.Add(new ValidationError("VAL-CORR-INVALID", "perception.correlativo", "Correlativo debe ser mayor a cero"));
+        if (perception.Details.Count == 0)
+            errors.Add(new ValidationError("VAL-DETAILS-EMPTY", "perception.details", "Debe incluir al menos un detalle"));
+        if (string.IsNullOrWhiteSpace(perception.Proveedor.NumDoc))
+            errors.Add(new ValidationError("VAL-PROVEEDOR-REQUIRED", "perception.proveedor.numDoc", "Documento del proveedor es obligatorio"));
+
+        return ToCanonicalOrder(errors);
+    }
+
+    public static IReadOnlyList<ValidationError> ValidateRetention(Retention retention)
+    {
+        var errors = new List<ValidationError>();
+
+        ValidateCompany(errors, retention.Company, "retention");
+        if (string.IsNullOrWhiteSpace(retention.Serie))
+            errors.Add(new ValidationError("VAL-SERIE-REQUIRED", "retention.serie", "Serie es obligatoria"));
+        if (retention.Correlativo <= 0)
+            errors.Add(new ValidationError("VAL-CORR-INVALID", "retention.correlativo", "Correlativo debe ser mayor a cero"));
+        if (retention.Details.Count == 0)
+            errors.Add(new ValidationError("VAL-DETAILS-EMPTY", "retention.details", "Debe incluir al menos un detalle"));
+        if (string.IsNullOrWhiteSpace(retention.Proveedor.NumDoc))
+            errors.Add(new ValidationError("VAL-PROVEEDOR-REQUIRED", "retention.proveedor.numDoc", "Documento del proveedor es obligatorio"));
+
+        return ToCanonicalOrder(errors);
+    }
+
+    private static void ValidateCompany(List<ValidationError> errors, Khipu.Data.Entities.Company company, string prefix)
+    {
+        if (string.IsNullOrWhiteSpace(company.Ruc))
+            errors.Add(new ValidationError("VAL-RUC-REQUIRED", $"{prefix}.company.ruc", "RUC emisor es obligatorio"));
+        else if (!DocumentValidator.ValidateRuc(company.Ruc))
+            errors.Add(new ValidationError("VAL-RUC-INVALID", $"{prefix}.company.ruc", "RUC emisor no cumple checksum SUNAT"));
+    }
+
     public static IReadOnlyList<ValidationError> ValidateSummary(Summary summary)
     {
         var errors = new List<ValidationError>();

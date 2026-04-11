@@ -12,4 +12,8 @@ public static class SunatEndpoints
     public const string Beta = "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService";
     public const string BetaAlt = "https://e-guiaremision.sunat.gob.pe/ol-ti-itemision-guia-gem-beta/billService";
     public const string BetaConsult = "https://e-factura.sunat.gob.pe/ol-it-wsconsvalidcpe-beta/billConsultService";
+
+    // GRE REST API - Paridad Greenter Api.php
+    public const string GreAuth = "https://api-seguridad.sunat.gob.pe/v1";
+    public const string GreCpe = "https://api-cpe.sunat.gob.pe/v1";
 }

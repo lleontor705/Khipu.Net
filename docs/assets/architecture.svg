@@ -54,8 +54,8 @@
   <rect x="40" y="374" width="90" height="20" rx="4" fill="#4c1" opacity="0.9"/>
   <text x="85" y="388" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">409 tests</text>
 
-  <rect x="140" y="374" width="90" height="20" rx="4" fill="#512bd4" opacity="0.9"/>
-  <text x="185" y="388" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">.NET 10</text>
+  <rect x="140" y="374" width="120" height="20" rx="4" fill="#512bd4" opacity="0.9"/>
+  <text x="200" y="388" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">.NET 6 | 8 | 9 | 10</text>
 
   <rect x="240" y="374" width="120" height="20" rx="4" fill="#e94560" opacity="0.9"/>
   <text x="300" y="388" text-anchor="middle" font-size="10" font-weight="600" fill="#fff">Greenter 100%</text>
